@@ -19,7 +19,8 @@ export NVM_DIR="$HOME/.nvm"
 
 **Instalar o Node 22**
 
-baixar o npm 
+**Baixar o npm** 
+
 ```
 nvm install 22
 nvm use 22
