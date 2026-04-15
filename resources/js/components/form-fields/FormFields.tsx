@@ -6,9 +6,13 @@ interface InputFieldProps {
 }
 
 export function InputField({ field, preview = false }: InputFieldProps) {
+    const fontSize = field.fontSize || 14;
     return (
-        <div className="space-y-1">
-            <label className="block text-sm font-medium text-gray-700">
+        <div className="flex h-full flex-col justify-start space-y-1">
+            <label
+                className="block font-medium text-gray-700"
+                style={{ fontSize: `${fontSize}px` }}
+            >
                 {field.label}
                 {field.required && <span className="ml-1 text-red-500">*</span>}
             </label>
@@ -17,16 +21,23 @@ export function InputField({ field, preview = false }: InputFieldProps) {
                 name={field.name}
                 placeholder={field.placeholder}
                 disabled={!preview}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:outline-none disabled:bg-gray-50 disabled:text-gray-500"
+                className="w-full rounded-md border border-gray-300 px-3 py-1 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:outline-none disabled:bg-gray-50 disabled:text-gray-500"
             />
         </div>
     );
 }
 
 export function TextareaField({ field, preview = false }: InputFieldProps) {
+    const containerHeight = field.height || 100;
+    const textareaHeight = Math.max(30, containerHeight - 35);
+    const fontSize = field.fontSize || 14;
+
     return (
-        <div className="space-y-1">
-            <label className="block text-sm font-medium text-gray-700">
+        <div className="flex h-full flex-col justify-start space-y-1">
+            <label
+                className="block font-medium text-gray-700"
+                style={{ fontSize: `${fontSize}px` }}
+            >
                 {field.label}
                 {field.required && <span className="ml-1 text-red-500">*</span>}
             </label>
@@ -34,24 +45,29 @@ export function TextareaField({ field, preview = false }: InputFieldProps) {
                 name={field.name}
                 placeholder={field.placeholder}
                 disabled={!preview}
-                rows={4}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:outline-none disabled:bg-gray-50 disabled:text-gray-500"
+                rows={2}
+                style={{ height: textareaHeight }}
+                className="w-full resize-none rounded-md border border-gray-300 px-3 py-1 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:outline-none disabled:bg-gray-50 disabled:text-gray-500"
             />
         </div>
     );
 }
 
 export function SelectField({ field, preview = false }: InputFieldProps) {
+    const fontSize = field.fontSize || 14;
     return (
-        <div className="space-y-1">
-            <label className="block text-sm font-medium text-gray-700">
+        <div className="flex h-full flex-col justify-start space-y-1">
+            <label
+                className="block font-medium text-gray-700"
+                style={{ fontSize: `${fontSize}px` }}
+            >
                 {field.label}
                 {field.required && <span className="ml-1 text-red-500">*</span>}
             </label>
             <select
                 name={field.name}
                 disabled={!preview}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:outline-none disabled:bg-gray-50 disabled:text-gray-500"
+                className="w-full rounded-md border border-gray-300 px-3 py-1 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:outline-none disabled:bg-gray-50 disabled:text-gray-500"
             >
                 <option value="">
                     {field.placeholder || 'Select an option...'}
@@ -67,13 +83,17 @@ export function SelectField({ field, preview = false }: InputFieldProps) {
 }
 
 export function RadioField({ field, preview = false }: InputFieldProps) {
+    const fontSize = field.fontSize || 14;
     return (
-        <div className="space-y-1">
-            <label className="block text-sm font-medium text-gray-700">
+        <div className="flex h-full flex-col justify-start space-y-1">
+            <label
+                className="block font-medium text-gray-700"
+                style={{ fontSize: `${fontSize}px` }}
+            >
                 {field.label}
                 {field.required && <span className="ml-1 text-red-500">*</span>}
             </label>
-            <div className="space-y-2">
+            <div className="space-y-1">
                 {field.options?.map((opt) => (
                     <div key={opt.value} className="flex items-center">
                         <input
@@ -94,13 +114,17 @@ export function RadioField({ field, preview = false }: InputFieldProps) {
 }
 
 export function CheckboxField({ field, preview = false }: InputFieldProps) {
+    const fontSize = field.fontSize || 14;
     return (
-        <div className="space-y-1">
-            <label className="block text-sm font-medium text-gray-700">
+        <div className="flex h-full flex-col justify-start space-y-1">
+            <label
+                className="block font-medium text-gray-700"
+                style={{ fontSize: `${fontSize}px` }}
+            >
                 {field.label}
                 {field.required && <span className="ml-1 text-red-500">*</span>}
             </label>
-            <div className="space-y-2">
+            <div className="space-y-1">
                 {field.options?.map((opt) => (
                     <div key={opt.value} className="flex items-center">
                         <input
@@ -121,7 +145,17 @@ export function CheckboxField({ field, preview = false }: InputFieldProps) {
 }
 
 export function LabelField({ field }: InputFieldProps) {
-    return <p className="text-base font-medium text-gray-900">{field.label}</p>;
+    const fontSize = field.fontSize || 24;
+    return (
+        <div className="flex h-full w-full items-start justify-start p-1">
+            <p
+                className="font-semibold text-gray-900"
+                style={{ fontSize: `${fontSize}px` }}
+            >
+                {field.label}
+            </p>
+        </div>
+    );
 }
 
 export function renderFieldComponent(field: FormField, preview = false) {

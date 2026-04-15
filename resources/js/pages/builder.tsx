@@ -1,6 +1,4 @@
-import type {
-    DragEndEvent,
-    DragStartEvent} from '@dnd-kit/core';
+import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core';
 import {
     DndContext,
     DragOverlay,
@@ -9,7 +7,7 @@ import {
     PointerSensor,
 } from '@dnd-kit/core';
 import { Head } from '@inertiajs/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Canvas } from '@/components/builder/Canvas';
 import { ComponentsSidebar } from '@/components/builder/ComponentsSidebar';
 import { PropertiesPanel } from '@/components/builder/PropertiesPanel';
@@ -21,6 +19,11 @@ function BuilderContent() {
     const [activeFieldType, setActiveFieldType] = useState<FieldType | null>(
         null,
     );
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -52,8 +55,18 @@ function BuilderContent() {
         }
     };
 
+    if (!mounted) {
+        return (
+            <div className="flex h-screen bg-gray-100 text-gray-900">
+                <div className="w-72 shrink-0 border-r border-gray-200 bg-gray-50" />
+                <div className="flex-1" />
+                <div className="w-80 shrink-0 border-l border-gray-200 bg-gray-50" />
+            </div>
+        );
+    }
+
     return (
-        <div className="flex h-screen bg-white">
+        <div className="flex h-screen bg-gray-100 text-gray-900">
             <DndContext
                 sensors={sensors}
                 onDragStart={handleDragStart}

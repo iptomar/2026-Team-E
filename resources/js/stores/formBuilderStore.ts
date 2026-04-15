@@ -27,17 +27,34 @@ const createDefaultField = (type: FieldType): FormField => {
         label: getDefaultLabel(type),
         required: false,
         name: `field_${id.slice(0, 8)}`,
+        x: 20,
+        y: 20 + Math.floor(Math.random() * 200),
     };
 
     switch (type) {
         case 'input':
-            return { ...baseField, placeholder: 'Enter text...' };
+            return {
+                ...baseField,
+                placeholder: 'Enter text...',
+                width: 400,
+                height: 60,
+                fontSize: 14,
+            };
         case 'textarea':
-            return { ...baseField, placeholder: 'Enter description...' };
+            return {
+                ...baseField,
+                placeholder: 'Enter description...',
+                width: 400,
+                height: 160,
+                fontSize: 14,
+            };
         case 'select':
             return {
                 ...baseField,
                 placeholder: 'Select an option...',
+                width: 400,
+                height: 60,
+                fontSize: 14,
                 options: [
                     { label: 'Option 1', value: 'option1' },
                     { label: 'Option 2', value: 'option2' },
@@ -46,6 +63,9 @@ const createDefaultField = (type: FieldType): FormField => {
         case 'radio':
             return {
                 ...baseField,
+                width: 400,
+                height: 100,
+                fontSize: 14,
                 options: [
                     { label: 'Option 1', value: 'option1' },
                     { label: 'Option 2', value: 'option2' },
@@ -54,13 +74,22 @@ const createDefaultField = (type: FieldType): FormField => {
         case 'checkbox':
             return {
                 ...baseField,
+                width: 400,
+                height: 100,
+                fontSize: 14,
                 options: [
                     { label: 'Checkbox 1', value: 'checkbox1' },
                     { label: 'Checkbox 2', value: 'checkbox2' },
                 ],
             };
         case 'label':
-            return { ...baseField, label: 'Label Text' };
+            return {
+                ...baseField,
+                label: 'Label Text',
+                width: 300,
+                height: 60,
+                fontSize: 24,
+            };
         default:
             return baseField;
     }
@@ -129,8 +158,8 @@ export const useFormStore = create<FormBuilderState>()(
                     );
 
                     if (oldIndex === -1 || newIndex === -1) {
-return state;
-}
+                        return state;
+                    }
 
                     return {
                         fields: arrayMove(state.fields, oldIndex, newIndex),

@@ -1,4 +1,5 @@
-import { useForm, useFieldArray } from 'react-hook-form';
+import { useEffect, useRef } from 'react';
+import { useForm, useFieldArray, useWatch } from 'react-hook-form';
 import { useFormStore } from '@/stores/formBuilderStore';
 import type { Option } from '@/types/builder';
 
@@ -7,22 +8,88 @@ interface FieldFormData {
     name: string;
     placeholder: string;
     required: boolean;
-    options: Option[];
+    fontSize: number;
+    options: { label: string; value: string }[];
 }
 
 export function PropertiesPanel() {
     const { selectedFieldId, updateField, getSelectedField } = useFormStore();
     const selectedField = getSelectedField();
+    const isResettingRef = useRef(false);
 
-    const { register, control, handleSubmit } = useForm<FieldFormData>({
+    const { register, control, reset, watch } = useForm<FieldFormData>({
         defaultValues: {
-            label: selectedField?.label || '',
-            name: selectedField?.name || '',
-            placeholder: selectedField?.placeholder || '',
-            required: selectedField?.required || false,
-            options: selectedField?.options || [],
+            label: '',
+            name: '',
+            placeholder: '',
+            required: false,
+            fontSize: 14,
+            options: [],
         },
     });
+
+    const formValues = watch();
+
+    useEffect(() => {
+        if (selectedField) {
+            isResettingRef.current = true;
+            reset({
+                label: selectedField.label || '',
+                name: selectedField.name || '',
+                placeholder: selectedField.placeholder || '',
+                required: selectedField.required || false,
+                fontSize: selectedField.fontSize || 14,
+                options:
+                    selectedField.options?.map((o) => ({
+                        label: o.label || '',
+                        value: o.value || '',
+                    })) || [],
+            });
+            setTimeout(() => {
+                isResettingRef.current = false;
+            }, 0);
+        }
+    }, [
+        selectedField?.id,
+        selectedField?.label,
+        selectedField?.name,
+        selectedField?.placeholder,
+        selectedField?.required,
+        selectedField?.fontSize,
+        selectedField?.options,
+        reset,
+    ]);
+
+    useEffect(() => {
+        if (
+            isResettingRef.current ||
+            !selectedFieldId ||
+            !formValues ||
+            !selectedField
+        ) {
+            return;
+        }
+
+        const hasChanges =
+            formValues.label !== selectedField.label ||
+            formValues.name !== selectedField.name ||
+            formValues.placeholder !== selectedField.placeholder ||
+            formValues.required !== selectedField.required ||
+            formValues.fontSize !== selectedField.fontSize ||
+            JSON.stringify(formValues.options) !==
+                JSON.stringify(selectedField.options);
+
+        if (hasChanges) {
+            updateField(selectedFieldId, {
+                label: formValues.label,
+                name: formValues.name,
+                placeholder: formValues.placeholder,
+                required: formValues.required,
+                fontSize: formValues.fontSize,
+                options: formValues.options,
+            });
+        }
+    }, [formValues, selectedFieldId, selectedField, updateField]);
 
     const { fields, append, remove } = useFieldArray({
         control,
@@ -52,30 +119,18 @@ export function PropertiesPanel() {
         );
     }
 
-    const onSubmit = (data: FieldFormData) => {
-        if (selectedFieldId) {
-            updateField(selectedFieldId, {
-                label: data.label,
-                name: data.name,
-                placeholder: data.placeholder,
-                required: data.required,
-                options: data.options,
-            });
-        }
-    };
-
     const hasOptions = ['select', 'radio', 'checkbox'].includes(
         selectedField.type,
     );
 
     return (
-        <div className="w-80 overflow-y-auto border-l border-gray-200 bg-gray-50">
+        <div className="w-80 overflow-y-auto border-l border-gray-200 bg-white">
             <div className="p-4">
                 <h2 className="mb-4 text-lg font-semibold text-gray-800">
                     Properties
                 </h2>
 
-                <form onChange={handleSubmit(onSubmit)} className="space-y-4">
+                <div className="space-y-4">
                     <div>
                         <label className="mb-1 block text-sm font-medium text-gray-700">
                             Label
@@ -83,7 +138,7 @@ export function PropertiesPanel() {
                         <input
                             {...register('label')}
                             type="text"
-                            className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                         />
                     </div>
 
@@ -94,7 +149,7 @@ export function PropertiesPanel() {
                         <input
                             {...register('name')}
                             type="text"
-                            className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                         />
                     </div>
 
@@ -108,7 +163,7 @@ export function PropertiesPanel() {
                             <input
                                 {...register('placeholder')}
                                 type="text"
-                                className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                                className="w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                             />
                         </div>
                     )}
@@ -128,6 +183,19 @@ export function PropertiesPanel() {
                         </label>
                     </div>
 
+                    <div>
+                        <label className="mb-1 block text-sm font-medium text-gray-700">
+                            Font Size (px)
+                        </label>
+                        <input
+                            {...register('fontSize', { valueAsNumber: true })}
+                            type="number"
+                            min="8"
+                            max="72"
+                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                        />
+                    </div>
+
                     {hasOptions && (
                         <div className="space-y-2">
                             <label className="block text-sm font-medium text-gray-700">
@@ -143,14 +211,14 @@ export function PropertiesPanel() {
                                             `options.${index}.label` as const,
                                         )}
                                         placeholder="Label"
-                                        className="flex-1 rounded border border-gray-300 px-2 py-1 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                                        className="flex-1 rounded border border-gray-300 px-2 py-1 text-sm text-gray-900 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                                     />
                                     <input
                                         {...register(
                                             `options.${index}.value` as const,
                                         )}
                                         placeholder="Value"
-                                        className="flex-1 rounded border border-gray-300 px-2 py-1 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                                        className="flex-1 rounded border border-gray-300 px-2 py-1 text-sm text-gray-900 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                                     />
                                     <button
                                         type="button"
@@ -191,13 +259,19 @@ export function PropertiesPanel() {
                             </span>
                         </p>
                         <p className="mt-1 text-xs text-gray-500">
+                            Size:{' '}
+                            <span className="font-mono text-xs">
+                                {selectedField.width} x {selectedField.height}px
+                            </span>
+                        </p>
+                        <p className="mt-1 text-xs text-gray-500">
                             ID:{' '}
                             <span className="font-mono text-xs">
                                 {selectedField.id.slice(0, 8)}
                             </span>
                         </p>
                     </div>
-                </form>
+                </div>
             </div>
         </div>
     );

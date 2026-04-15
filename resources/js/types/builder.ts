@@ -26,6 +26,11 @@ export interface FormField {
     options?: Option[];
     validation?: ValidationRule[];
     name: string;
+    x?: number;
+    y?: number;
+    width?: number;
+    height?: number;
+    fontSize?: number;
 }
 
 export interface ComponentConfig {
