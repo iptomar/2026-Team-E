@@ -6,7 +6,8 @@ interface InputFieldProps {
 }
 
 export function InputField({ field, preview = false }: InputFieldProps) {
-    const fontSize = field.fontSize || 14;
+    const fontSize = field.fontSize ?? 14;
+
     return (
         <div className="flex h-full flex-col justify-start space-y-1">
             <label
@@ -19,7 +20,7 @@ export function InputField({ field, preview = false }: InputFieldProps) {
             <input
                 type="text"
                 name={field.name}
-                placeholder={field.placeholder}
+                placeholder={field.placeholder ?? ''}
                 disabled={!preview}
                 className="w-full rounded-md border border-gray-300 px-3 py-1 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:outline-none disabled:bg-gray-50 disabled:text-gray-500"
             />
@@ -28,9 +29,9 @@ export function InputField({ field, preview = false }: InputFieldProps) {
 }
 
 export function TextareaField({ field, preview = false }: InputFieldProps) {
-    const containerHeight = field.height || 100;
+    const containerHeight = field.height ?? 100;
     const textareaHeight = Math.max(30, containerHeight - 35);
-    const fontSize = field.fontSize || 14;
+    const fontSize = field.fontSize ?? 14;
 
     return (
         <div className="flex h-full flex-col justify-start space-y-1">
@@ -43,7 +44,7 @@ export function TextareaField({ field, preview = false }: InputFieldProps) {
             </label>
             <textarea
                 name={field.name}
-                placeholder={field.placeholder}
+                placeholder={field.placeholder ?? ''}
                 disabled={!preview}
                 rows={2}
                 style={{ height: textareaHeight }}
@@ -54,7 +55,8 @@ export function TextareaField({ field, preview = false }: InputFieldProps) {
 }
 
 export function SelectField({ field, preview = false }: InputFieldProps) {
-    const fontSize = field.fontSize || 14;
+    const fontSize = field.fontSize ?? 14;
+
     return (
         <div className="flex h-full flex-col justify-start space-y-1">
             <label
@@ -70,7 +72,7 @@ export function SelectField({ field, preview = false }: InputFieldProps) {
                 className="w-full rounded-md border border-gray-300 px-3 py-1 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:outline-none disabled:bg-gray-50 disabled:text-gray-500"
             >
                 <option value="">
-                    {field.placeholder || 'Select an option...'}
+                    {field.placeholder ?? 'Select an option...'}
                 </option>
                 {field.options?.map((opt) => (
                     <option key={opt.value} value={opt.value}>
@@ -83,7 +85,8 @@ export function SelectField({ field, preview = false }: InputFieldProps) {
 }
 
 export function RadioField({ field, preview = false }: InputFieldProps) {
-    const fontSize = field.fontSize || 14;
+    const fontSize = field.fontSize ?? 14;
+
     return (
         <div className="flex h-full flex-col justify-start space-y-1">
             <label
@@ -114,7 +117,8 @@ export function RadioField({ field, preview = false }: InputFieldProps) {
 }
 
 export function CheckboxField({ field, preview = false }: InputFieldProps) {
-    const fontSize = field.fontSize || 14;
+    const fontSize = field.fontSize ?? 14;
+
     return (
         <div className="flex h-full flex-col justify-start space-y-1">
             <label
@@ -145,7 +149,8 @@ export function CheckboxField({ field, preview = false }: InputFieldProps) {
 }
 
 export function LabelField({ field }: InputFieldProps) {
-    const fontSize = field.fontSize || 24;
+    const fontSize = field.fontSize ?? 24;
+
     return (
         <div className="flex h-full w-full items-start justify-start p-1">
             <p
