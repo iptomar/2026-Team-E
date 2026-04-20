@@ -6,10 +6,6 @@
         "node": ">=22.13.1",
         "npm": ">=11.0.0"
     },
-    "engines": {
-        "node": ">=22.13.1",
-        "npm": ">=11.0.0"
-    },
     "scripts": {
         "build": "vite build",
         "build:ssr": "vite build && vite build --ssr",
@@ -89,4 +85,5 @@
         "lightningcss-win32-x64-msvc": "^1.29.1"
     }
 }
+
 
