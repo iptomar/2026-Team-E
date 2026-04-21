@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class FormTemplate extends Model
 {
@@ -28,8 +30,13 @@ class FormTemplate extends Model
     /**
      * Relacionamento: Um template pertence a um utilizador (Admin)
      */
-    public function creator()
+    public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function submissions(): HasMany
+    {
+        return $this->hasMany(FormSubmission::class);
     }
 }
