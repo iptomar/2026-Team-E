@@ -8,7 +8,7 @@ Route::prefix('v1')->group(function () {
     Route::apiResource('form-templates', FormTemplateController::class)
         ->only(['index', 'show']);
 
-    Route::middleware('auth')->group(function () {
+    Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('form-templates', FormTemplateController::class)
             ->except(['index', 'show']);
 
