@@ -32,4 +32,12 @@ class FormTemplate extends Model
     {
         return $this->belongsTo(User::class, 'created_by');
     }
+
+    /**
+     * Relacionamento: Um template tem múltiplas submissões
+     */
+    public function submissions()
+    {
+        return $this->hasMany(FormSubmission::class);
+    }
 }

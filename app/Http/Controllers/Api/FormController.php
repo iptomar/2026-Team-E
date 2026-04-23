@@ -46,4 +46,48 @@ class FormController extends Controller
         $template = FormTemplate::findOrFail($id);
         return response()->json($template);
     }
+
+    /**
+     * Listar todos os templates (para admin ou utilizadores autorizados)
+     */
+    public function indexTemplates()
+    {
+        $templates = FormTemplate::with('creator')->get();
+        return response()->json($templates);
+    }
+
+    /**
+     * Atualizar um template existente
+     */
+    public function updateTemplate(Request $request, $id)
+    {
+        $template = FormTemplate::findOrFail($id);
+
+        $validated = $request->validate([
+            'name' => 'sometimes|required|string|max:255',
+            'structure' => 'sometimes|required|array',
+            'validation_sequence' => 'sometimes|required|array',
+            'allowed_roles' => 'sometimes|required|array',
+        ]);
+
+        $template->update($validated);
+
+        return response()->json([
+            'message' => 'Template atualizado com sucesso!',
+            'data' => $template
+        ]);
+    }
+
+    /**
+     * Eliminar um template
+     */
+    public function destroyTemplate($id)
+    {
+        $template = FormTemplate::findOrFail($id);
+        $template->delete();
+
+        return response()->json([
+            'message' => 'Template eliminado com sucesso!'
+        ]);
+    }
 }

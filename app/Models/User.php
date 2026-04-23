@@ -31,4 +31,20 @@ class User extends Authenticatable
             'two_factor_confirmed_at' => 'datetime',
         ];
     }
+
+    /**
+     * Relacionamento: Um utilizador pode criar múltiplos templates
+     */
+    public function formTemplates()
+    {
+        return $this->hasMany(FormTemplate::class, 'created_by');
+    }
+
+    /**
+     * Relacionamento: Um utilizador pode fazer múltiplas submissões
+     */
+    public function formSubmissions()
+    {
+        return $this->hasMany(FormSubmission::class);
+    }
 }
