@@ -26,3 +26,22 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+
+# Additional entries to prevent version conflicts
+tsconfig.tsbuildinfo
+*.tsbuildinfo
+.cache/
+.parcel-cache/
+.next/
+.nuxt/
+.vite/
+dist/
+build/
+coverage/
+.nyc_output/
+*.log
+logs/
+pids/
+*.pid
+*.seed
+*.pid.lock

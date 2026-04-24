@@ -31,6 +31,10 @@ export interface FormField {
     width?: number;
     height?: number;
     fontSize?: number;
+    helperText?: string;
+    defaultValue?: string;
+    minLength?: number;
+    maxLength?: number;
 }
 
 export interface ComponentConfig {

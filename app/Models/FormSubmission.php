@@ -20,4 +20,20 @@ class FormSubmission extends Model
     protected $casts = [
         'submitted_data' => 'array', // Crucial para ler as respostas do utilizador como array
     ];
+
+    /**
+     * Relacionamento: Uma submissão pertence a um utilizador
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Relacionamento: Uma submissão pertence a um template
+     */
+    public function formTemplate()
+    {
+        return $this->belongsTo(FormTemplate::class);
+    }
 }
