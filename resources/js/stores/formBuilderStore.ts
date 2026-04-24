@@ -8,27 +8,63 @@ interface FormBuilderState {
     fields: FormField[];
     selectedFieldId: string | null;
     formName: string;
+    gridSnapEnabled: boolean;
+    gridSize: number;
 
-    addField: (type: FieldType, index?: number) => void;
+    addField: (type: FieldType, x?: number, y?: number) => void;
     removeField: (id: string) => void;
     updateField: (id: string, updates: Partial<FormField>) => void;
     reorderFields: (activeId: string, overId: string) => void;
     selectField: (id: string | null) => void;
+    toggleGridSnap: () => void;
+    setGridSize: (size: number) => void;
     clearForm: () => void;
     setFormName: (name: string) => void;
     getSelectedField: () => FormField | null;
 }
 
-const createDefaultField = (type: FieldType): FormField => {
+const GRID_SIZE = 10;
+
+function getDefaultFieldDimensions(type: FieldType): {
+    width: number;
+    height: number;
+} {
+    switch (type) {
+        case 'input':
+            return { width: 400, height: 60 };
+        case 'textarea':
+            return { width: 400, height: 160 };
+        case 'select':
+            return { width: 400, height: 60 };
+        case 'radio':
+            return { width: 400, height: 100 };
+        case 'checkbox':
+            return { width: 400, height: 100 };
+        case 'label':
+            return { width: 300, height: 60 };
+        default:
+            return { width: 400, height: 60 };
+    }
+}
+
+function createDefaultField(
+    type: FieldType,
+    x: number = 20,
+    y: number = 20,
+): FormField {
     const id = uuidv4();
-    const baseField = {
+    const dimensions = getDefaultFieldDimensions(type);
+
+    const baseField: FormField = {
         id,
         type,
         label: getDefaultLabel(type),
         required: false,
         name: `field_${id.slice(0, 8)}`,
-        x: 20,
-        y: 20 + Math.floor(Math.random() * 200),
+        x,
+        y,
+        width: dimensions.width,
+        height: dimensions.height,
     };
 
     switch (type) {
@@ -36,24 +72,18 @@ const createDefaultField = (type: FieldType): FormField => {
             return {
                 ...baseField,
                 placeholder: 'Enter text...',
-                width: 400,
-                height: 60,
                 fontSize: 14,
             };
         case 'textarea':
             return {
                 ...baseField,
                 placeholder: 'Enter description...',
-                width: 400,
-                height: 160,
                 fontSize: 14,
             };
         case 'select':
             return {
                 ...baseField,
                 placeholder: 'Select an option...',
-                width: 400,
-                height: 60,
                 fontSize: 14,
                 options: [
                     { label: 'Option 1', value: 'option1' },
@@ -63,8 +93,6 @@ const createDefaultField = (type: FieldType): FormField => {
         case 'radio':
             return {
                 ...baseField,
-                width: 400,
-                height: 100,
                 fontSize: 14,
                 options: [
                     { label: 'Option 1', value: 'option1' },
@@ -74,8 +102,6 @@ const createDefaultField = (type: FieldType): FormField => {
         case 'checkbox':
             return {
                 ...baseField,
-                width: 400,
-                height: 100,
                 fontSize: 14,
                 options: [
                     { label: 'Checkbox 1', value: 'checkbox1' },
@@ -86,14 +112,12 @@ const createDefaultField = (type: FieldType): FormField => {
             return {
                 ...baseField,
                 label: 'Label Text',
-                width: 300,
-                height: 60,
                 fontSize: 24,
             };
         default:
             return baseField;
     }
-};
+}
 
 const getDefaultLabel = (type: FieldType): string => {
     const labels: Record<FieldType, string> = {
@@ -114,20 +138,15 @@ export const useFormStore = create<FormBuilderState>()(
             fields: [],
             selectedFieldId: null,
             formName: 'Untitled Form',
+            gridSnapEnabled: true,
+            gridSize: 10,
 
-            addField: (type, index) => {
-                const newField = createDefaultField(type);
-                set((state) => {
-                    const newFields = [...state.fields];
-
-                    if (index !== undefined) {
-                        newFields.splice(index, 0, newField);
-                    } else {
-                        newFields.push(newField);
-                    }
-
-                    return { fields: newFields, selectedFieldId: newField.id };
-                });
+            addField: (type, x = 20, y = 20) => {
+                const newField = createDefaultField(type, x, y);
+                set((state) => ({
+                    fields: [...state.fields, newField],
+                    selectedFieldId: newField.id,
+                }));
             },
 
             removeField: (id) => {
@@ -169,6 +188,14 @@ export const useFormStore = create<FormBuilderState>()(
 
             selectField: (id) => {
                 set({ selectedFieldId: id });
+            },
+
+            toggleGridSnap: () => {
+                set((state) => ({ gridSnapEnabled: !state.gridSnapEnabled }));
+            },
+
+            setGridSize: (size) => {
+                set({ gridSize: size });
             },
 
             clearForm: () => {

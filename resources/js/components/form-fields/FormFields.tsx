@@ -9,9 +9,9 @@ export function InputField({ field, preview = false }: InputFieldProps) {
     const fontSize = field.fontSize ?? 14;
 
     return (
-        <div className="flex h-full flex-col justify-start space-y-1">
+        <div className="flex h-full flex-col justify-start space-y-1.5 overflow-hidden">
             <label
-                className="block font-medium text-gray-700"
+                className="block font-semibold text-gray-700"
                 style={{ fontSize: `${fontSize}px` }}
             >
                 {field.label}
@@ -21,22 +21,26 @@ export function InputField({ field, preview = false }: InputFieldProps) {
                 type="text"
                 name={field.name}
                 placeholder={field.placeholder ?? ''}
+                defaultValue={field.defaultValue}
                 disabled={!preview}
-                className="w-full rounded-md border border-gray-300 px-3 py-1 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:outline-none disabled:bg-gray-50 disabled:text-gray-500"
+                className="w-full rounded-lg border border-indigo-200 bg-white px-3 py-2 text-sm text-gray-800 placeholder-gray-400 shadow-sm transition-all focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30 focus:outline-none disabled:bg-gray-50 disabled:text-gray-500"
             />
+            {field.helperText && (
+                <p className="truncate text-xs text-gray-500">
+                    {field.helperText}
+                </p>
+            )}
         </div>
     );
 }
 
 export function TextareaField({ field, preview = false }: InputFieldProps) {
-    const containerHeight = field.height ?? 100;
-    const textareaHeight = Math.max(30, containerHeight - 35);
     const fontSize = field.fontSize ?? 14;
 
     return (
-        <div className="flex h-full flex-col justify-start space-y-1">
+        <div className="flex h-full flex-col justify-start space-y-1.5 overflow-hidden">
             <label
-                className="block font-medium text-gray-700"
+                className="block font-semibold text-gray-700"
                 style={{ fontSize: `${fontSize}px` }}
             >
                 {field.label}
@@ -45,11 +49,16 @@ export function TextareaField({ field, preview = false }: InputFieldProps) {
             <textarea
                 name={field.name}
                 placeholder={field.placeholder ?? ''}
+                defaultValue={field.defaultValue}
                 disabled={!preview}
                 rows={2}
-                style={{ height: textareaHeight }}
-                className="w-full resize-none rounded-md border border-gray-300 px-3 py-1 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:outline-none disabled:bg-gray-50 disabled:text-gray-500"
+                className="w-full flex-1 resize-none rounded-lg border border-indigo-200 bg-white px-3 py-2 text-sm text-gray-800 placeholder-gray-400 shadow-sm transition-all focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30 focus:outline-none disabled:bg-gray-50 disabled:text-gray-500"
             />
+            {field.helperText && (
+                <p className="truncate text-xs text-gray-500">
+                    {field.helperText}
+                </p>
+            )}
         </div>
     );
 }
@@ -58,9 +67,9 @@ export function SelectField({ field, preview = false }: InputFieldProps) {
     const fontSize = field.fontSize ?? 14;
 
     return (
-        <div className="flex h-full flex-col justify-start space-y-1">
+        <div className="flex h-full flex-col justify-start space-y-1.5 overflow-hidden">
             <label
-                className="block font-medium text-gray-700"
+                className="block font-semibold text-gray-700"
                 style={{ fontSize: `${fontSize}px` }}
             >
                 {field.label}
@@ -69,7 +78,7 @@ export function SelectField({ field, preview = false }: InputFieldProps) {
             <select
                 name={field.name}
                 disabled={!preview}
-                className="w-full rounded-md border border-gray-300 px-3 py-1 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:outline-none disabled:bg-gray-50 disabled:text-gray-500"
+                className="w-full flex-1 rounded-lg border border-indigo-200 bg-white px-3 py-2 text-sm text-gray-800 shadow-sm transition-all focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30 focus:outline-none disabled:bg-gray-50 disabled:text-gray-500"
             >
                 <option value="">
                     {field.placeholder ?? 'Select an option...'}
@@ -80,6 +89,11 @@ export function SelectField({ field, preview = false }: InputFieldProps) {
                     </option>
                 ))}
             </select>
+            {field.helperText && (
+                <p className="truncate text-xs text-gray-500">
+                    {field.helperText}
+                </p>
+            )}
         </div>
     );
 }
@@ -88,30 +102,38 @@ export function RadioField({ field, preview = false }: InputFieldProps) {
     const fontSize = field.fontSize ?? 14;
 
     return (
-        <div className="flex h-full flex-col justify-start space-y-1">
+        <div className="flex h-full flex-col justify-start space-y-1.5 overflow-hidden">
             <label
-                className="block font-medium text-gray-700"
+                className="block font-semibold text-gray-700"
                 style={{ fontSize: `${fontSize}px` }}
             >
                 {field.label}
                 {field.required && <span className="ml-1 text-red-500">*</span>}
             </label>
-            <div className="space-y-1">
-                {field.options?.map((opt) => (
-                    <div key={opt.value} className="flex items-center">
+            <div className="flex-1 space-y-1.5 overflow-y-auto">
+                {(field.options?.length > 0
+                    ? field.options
+                    : [{ label: 'Option 1', value: 'option1' }]
+                ).map((opt) => (
+                    <div key={opt.value} className="flex items-center gap-2">
                         <input
                             type="radio"
                             name={field.name}
                             value={opt.value}
                             disabled={!preview}
-                            className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-500 disabled:opacity-50"
+                            className="h-4 w-4 shrink-0 border-indigo-300 text-indigo-600 focus:ring-indigo-500 disabled:opacity-50"
                         />
-                        <label className="ml-2 block text-sm text-gray-700">
+                        <label className="truncate text-sm text-gray-700">
                             {opt.label}
                         </label>
                     </div>
                 ))}
             </div>
+            {field.helperText && (
+                <p className="truncate text-xs text-gray-500">
+                    {field.helperText}
+                </p>
+            )}
         </div>
     );
 }
@@ -120,30 +142,38 @@ export function CheckboxField({ field, preview = false }: InputFieldProps) {
     const fontSize = field.fontSize ?? 14;
 
     return (
-        <div className="flex h-full flex-col justify-start space-y-1">
+        <div className="flex h-full flex-col justify-start space-y-1.5 overflow-hidden">
             <label
-                className="block font-medium text-gray-700"
+                className="block font-semibold text-gray-700"
                 style={{ fontSize: `${fontSize}px` }}
             >
                 {field.label}
                 {field.required && <span className="ml-1 text-red-500">*</span>}
             </label>
-            <div className="space-y-1">
-                {field.options?.map((opt) => (
-                    <div key={opt.value} className="flex items-center">
+            <div className="flex-1 space-y-1.5 overflow-y-auto">
+                {(field.options?.length > 0
+                    ? field.options
+                    : [{ label: 'Option 1', value: 'option1' }]
+                ).map((opt) => (
+                    <div key={opt.value} className="flex items-center gap-2">
                         <input
                             type="checkbox"
                             name={field.name}
                             value={opt.value}
                             disabled={!preview}
-                            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 disabled:opacity-50"
+                            className="h-4 w-4 shrink-0 rounded border-indigo-300 text-indigo-600 focus:ring-indigo-500 disabled:opacity-50"
                         />
-                        <label className="ml-2 block text-sm text-gray-700">
+                        <label className="truncate text-sm text-gray-700">
                             {opt.label}
                         </label>
                     </div>
                 ))}
             </div>
+            {field.helperText && (
+                <p className="truncate text-xs text-gray-500">
+                    {field.helperText}
+                </p>
+            )}
         </div>
     );
 }
@@ -152,7 +182,7 @@ export function LabelField({ field }: InputFieldProps) {
     const fontSize = field.fontSize ?? 24;
 
     return (
-        <div className="flex h-full w-full items-start justify-start p-1">
+        <div className="flex h-full w-full items-start justify-start">
             <p
                 className="font-semibold text-gray-900"
                 style={{ fontSize: `${fontSize}px` }}
