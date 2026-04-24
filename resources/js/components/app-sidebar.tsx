@@ -13,12 +13,23 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { dashboard } from '@/routes';
+import { dashboard,builder,workflow } from '@/routes';
 import type { NavItem } from '@/types';
 
 const mainNavItems: NavItem[] = [
+
     {
-        title: 'Dashboard',
+            title: 'Canvas',
+            href: builder(),
+            icon: LayoutGrid,
+    },
+    {
+            title: 'Worflows',
+            href: workflow(),
+            icon: LayoutGrid,
+    },
+    {
+        title: 'Templates',
         href: dashboard(),
         icon: LayoutGrid,
     },

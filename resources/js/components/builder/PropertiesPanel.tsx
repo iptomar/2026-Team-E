@@ -14,7 +14,8 @@ interface FieldFormData {
 export function PropertiesPanel() {
     const { selectedFieldId, updateField, getSelectedField } = useFormStore();
     const selectedField = getSelectedField();
-    const isResettingRef = useRef(false);
+
+    const isResetting = useRef(false);
 
     const { register, control, reset, watch } = useForm<FieldFormData>({
         defaultValues: {
@@ -29,56 +30,39 @@ export function PropertiesPanel() {
 
     const formValues = watch();
 
-    useEffect(() => {
-        if (!selectedField) {
-return;
-}
+    const { fields, append, remove } = useFieldArray({
+        control,
+        name: 'options',
+    });
 
-        isResettingRef.current = true;
+    // reset when selecting field
+    useEffect(() => {
+        if (!selectedField) return;
+
+        isResetting.current = true;
 
         reset({
-            label: selectedField.label ?? '',
-            name: selectedField.name ?? '',
-            placeholder: selectedField.placeholder ?? '',
+            label: selectedField.label || '',
+            name: selectedField.name || '',
+            placeholder: selectedField.placeholder || '',
             required: selectedField.required ?? false,
             fontSize: selectedField.fontSize ?? 14,
-            options:
-                selectedField.options?.map((o) => ({
-                    label: o.label ?? '',
-                    value: o.value ?? '',
-                })) ?? [],
+            options: selectedField.options ?? [],
         });
 
-        const timeout = setTimeout(() => {
-            isResettingRef.current = false;
+        const t = setTimeout(() => {
+            isResetting.current = false;
         }, 0);
 
-        return () => clearTimeout(timeout);
-    }, [
-        selectedField?.id,
-        selectedField?.label,
-        selectedField?.name,
-        selectedField?.placeholder,
-        selectedField?.required,
-        selectedField?.fontSize,
-        selectedField?.options,
-        reset,
-    ]);
+        return () => clearTimeout(t);
+    }, [selectedField?.id]);
 
+    // sync updates
     useEffect(() => {
-        if (
-            isResettingRef.current ||
-            !selectedFieldId ||
-            !selectedField
-        ) {
-            return;
-        }
+        if (!selectedField || !selectedFieldId) return;
+        if (isResetting.current) return;
 
-        if (!formValues) {
-return;
-}
-
-        const hasChanges =
+        const changed =
             formValues.label !== selectedField.label ||
             formValues.name !== selectedField.name ||
             formValues.placeholder !== selectedField.placeholder ||
@@ -87,30 +71,17 @@ return;
             JSON.stringify(formValues.options) !==
                 JSON.stringify(selectedField.options);
 
-        if (!hasChanges) {
-return;
-}
+        if (!changed) return;
 
-        updateField(selectedFieldId, {
-            label: formValues.label,
-            name: formValues.name,
-            placeholder: formValues.placeholder,
-            required: formValues.required,
-            fontSize: formValues.fontSize,
-            options: formValues.options,
-        });
-    }, [formValues, selectedFieldId, selectedField, updateField]);
-
-    const { fields, append, remove } = useFieldArray({
-        control,
-        name: 'options',
-    });
+        updateField(selectedFieldId, formValues);
+    }, [formValues, selectedFieldId, selectedField]);
 
     if (!selectedField) {
         return (
-            <div className="flex w-80 items-center justify-center border-l border-gray-200 bg-gray-50 p-4">
+            <div className="flex w-96 items-center justify-center border-l border-gray-200 bg-gray-50">
                 <div className="text-center text-gray-400">
-                    <p className="text-sm">Select a component to edit</p>
+                    <p className="text-sm font-medium">Select a component</p>
+                    <p className="text-xs">to edit properties</p>
                 </div>
             </div>
         );
@@ -121,64 +92,149 @@ return;
     );
 
     return (
-        <div className="w-80 overflow-y-auto border-l border-gray-200 bg-white">
-            <div className="p-4">
-                <h2 className="mb-4 text-lg font-semibold text-gray-800">
-                    Properties
-                </h2>
+        <div className="w-96 overflow-y-auto border-l border-gray-200 bg-white">
+            <div className="p-6">
+                {/* HEADER */}
+                <div className="mb-6">
+                    <h2 className="text-lg font-semibold text-gray-900">
+                        Properties
+                    </h2>
+                    <p className="text-xs text-gray-500">
+                        Edit selected field settings
+                    </p>
+                </div>
 
-                <div className="space-y-4">
-                    <input {...register('label')} />
-                    <input {...register('name')} />
+                <div className="space-y-5">
+                    {/* LABEL */}
+                    <PropertyField label="Label" {...register('label')} />
 
+                    {/* NAME */}
+                    <PropertyField label="Field Name" {...register('name')} />
+
+                    {/* PLACEHOLDER */}
                     {(selectedField.type === 'input' ||
                         selectedField.type === 'textarea' ||
                         selectedField.type === 'select') && (
-                        <input {...register('placeholder')} />
+                        <PropertyField
+                            label="Placeholder"
+                            {...register('placeholder')}
+                        />
                     )}
 
-                    <input {...register('required')} type="checkbox" />
+                    {/* REQUIRED */}
+                    <div className="flex items-center gap-3">
+                        <input
+                            type="checkbox"
+                            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            {...register('required')}
+                        />
+                        <label className="text-sm text-gray-700">
+                            Required field
+                        </label>
+                    </div>
 
-                    <input
-                        {...register('fontSize', { valueAsNumber: true })}
+                    {/* FONT SIZE */}
+                    <PropertyField
+                        label="Font Size"
                         type="number"
+                        {...register('fontSize', { valueAsNumber: true })}
                     />
 
+                    {/* OPTIONS (RADIO / SELECT / CHECKBOX) */}
                     {hasOptions && (
-                        <div>
+                        <div className="space-y-3 rounded-lg bg-indigo-50/50 p-3">
+                            <div className="flex items-center justify-between">
+                                <p className="text-xs font-semibold text-indigo-600 uppercase">
+                                    Options
+                                </p>
+
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        append({
+                                            label: 'Option',
+                                            value: 'option',
+                                        })
+                                    }
+                                    className="rounded-md bg-indigo-600 px-2 py-1 text-xs text-white transition-colors hover:bg-indigo-700"
+                                >
+                                    + Add
+                                </button>
+                            </div>
+
                             {fields.map((field, index) => (
-                                <div key={field.id}>
+                                <div
+                                    key={field.id}
+                                    className="flex items-center gap-2"
+                                >
                                     <input
-                                        {...register(
-                                            `options.${index}.label` as const,
-                                        )}
+                                        {...register(`options.${index}.label`)}
+                                        className="w-full rounded-lg border border-gray-200 px-2 py-1 text-sm transition focus:border-indigo-400 focus:ring-1 focus:ring-indigo-300 focus:outline-none"
+                                        placeholder="Label"
                                     />
                                     <input
-                                        {...register(
-                                            `options.${index}.value` as const,
-                                        )}
+                                        {...register(`options.${index}.value`)}
+                                        className="w-full rounded-lg border border-gray-200 px-2 py-1 text-sm transition focus:border-indigo-400 focus:ring-1 focus:ring-indigo-300 focus:outline-none"
+                                        placeholder="Value"
                                     />
                                     <button
                                         type="button"
                                         onClick={() => remove(index)}
+                                        className="flex h-5 w-5 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-red-50 hover:text-red-500"
                                     >
-                                        X
+                                        <svg
+                                            className="h-3 w-3"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth={2}
+                                                d="M6 18L18 6M6 6l12 12"
+                                            />
+                                        </svg>
                                     </button>
                                 </div>
                             ))}
-
-                            <button
-                                type="button"
-                                onClick={() =>
-                                    append({ label: '', value: '' })
-                                }
-                            >
-                                + Add Option
-                            </button>
                         </div>
                     )}
+
+                    {/* INFO */}
+                    <div className="rounded-lg bg-indigo-50/50 p-4">
+                        <p className="text-xs font-semibold text-indigo-600 uppercase">
+                            Field Info
+                        </p>
+                        <div className="mt-2 space-y-1 text-xs text-gray-600">
+                            <p>Type: {selectedField.type}</p>
+                            <p>
+                                Size: {selectedField.width} ×{' '}
+                                {selectedField.height}px
+                            </p>
+                            <p>ID: {selectedField.id.slice(0, 8)}...</p>
+                        </div>
+                    </div>
                 </div>
             </div>
+        </div>
+    );
+}
+
+/* INPUT COMPONENT (clean + consistent) */
+function PropertyField({
+    label,
+    ...props
+}: React.ComponentProps<'input'> & { label: string }) {
+    return (
+        <div>
+            <label className="mb-1 block text-xs font-medium text-gray-500 uppercase">
+                {label}
+            </label>
+            <input
+                {...props}
+                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm shadow-sm transition focus:border-indigo-400 focus:ring-1 focus:ring-indigo-300 focus:outline-none"
+            />
         </div>
     );
 }
