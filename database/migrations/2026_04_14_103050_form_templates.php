@@ -17,7 +17,7 @@ return new class extends Migration
             $table->json('structure'); // estrutura do template (componentes drag-and-drop)
             $table->json('validation_sequence'); // lista de IDs/Cargos que validam (ex: [1, 5, 10])
             $table->json('allowed_roles'); // que cargos podem aceder/preencher
-            $table->foreignId('created_by')->constrained('users'); // quem criou
+            $table->foreignId('created_by')->constrained('users')->cascadeOnDelete(); // quem criou
             $table->timestamps();
         });
     }
@@ -27,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
+        Schema::dropIfExists('form_templates');
     }
 };

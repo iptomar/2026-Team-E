@@ -10,10 +10,12 @@ Route::prefix('v1')->group(function () {
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('form-templates', FormTemplateController::class)
-            ->except(['index', 'show']);
+            ->only(['store', 'update', 'destroy']);
 
         Route::get('form-submissions', [FormSubmissionController::class, 'index']);
         Route::post('form-submissions', [FormSubmissionController::class, 'store']);
-        Route::get('form-submissions/{formSubmission}', [FormSubmissionController::class, 'show']);
+        Route::get('form-submissions/{form_submission}', [FormSubmissionController::class, 'show']);
+        Route::patch('form-submissions/{form_submission}', [FormSubmissionController::class, 'update']);
+        Route::delete('form-submissions/{form_submission}', [FormSubmissionController::class, 'destroy']);
     });
 });

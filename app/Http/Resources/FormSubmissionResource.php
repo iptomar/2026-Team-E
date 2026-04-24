@@ -13,6 +13,7 @@ class FormSubmissionResource extends JsonResource
             'id' => $this->id,
             'form_template_id' => $this->form_template_id,
             'user_id' => $this->user_id,
+            'template_snapshot' => $this->template_snapshot,
             'submitted_data' => $this->submitted_data,
             'current_step_index' => $this->current_step_index,
             'status' => $this->status,

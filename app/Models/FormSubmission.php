@@ -13,12 +13,14 @@ class FormSubmission extends Model
     protected $fillable = [
         'form_template_id', 
         'user_id', 
+        'template_snapshot',
         'submitted_data', 
         'current_step_index', 
         'status'
     ];
 
     protected $casts = [
+        'template_snapshot' => 'array',
         'submitted_data' => 'array', // Crucial para ler as respostas do utilizador como array
     ];
 
