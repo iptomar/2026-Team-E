@@ -247,34 +247,6 @@ export function ComponentsSidebar() {
                 </div>
             </div>
 
-            <div className="mt-8 rounded-xl bg-gradient-to-br from-indigo-50 to-purple-50 p-4 shadow-inner">
-                <div className="flex items-start gap-3">
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-indigo-100 shadow-sm">
-                        <svg
-                            className="h-4 w-4 text-indigo-600"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                            />
-                        </svg>
-                    </div>
-                    <div>
-                        <p className="text-sm font-medium text-gray-700">
-                            Pro tip
-                        </p>
-                        <p className="mt-1 text-xs text-gray-500">
-                            Select a field on the canvas to edit its properties
-                            in the right panel
-                        </p>
-                    </div>
-                </div>
-            </div>
         </div>
     );
 }
