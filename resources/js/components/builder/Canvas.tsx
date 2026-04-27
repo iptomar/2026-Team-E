@@ -51,7 +51,7 @@ export function Canvas({
     };
 
     return (
-        <div className="flex h-screen w-screen items-center justify-center overflow-hidden bg-gray-200">
+        <div className="flex h-full w-full items-center justify-center overflow-hidden bg-gray-200 p-6">
             {/* 📄 A4 CANVAS (DROP ZONE REAL) */}
             <div
                 ref={(el) => {

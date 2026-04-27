@@ -8,6 +8,7 @@ interface FormBuilderState {
     fields: FormField[];
     selectedFieldId: string | null;
     formName: string;
+    savedTemplateId: number | null;
     gridSnapEnabled: boolean;
     gridSize: number;
 
@@ -19,7 +20,9 @@ interface FormBuilderState {
     toggleGridSnap: () => void;
     setGridSize: (size: number) => void;
     clearForm: () => void;
+    resetBuilder: () => void;
     setFormName: (name: string) => void;
+    setSavedTemplateId: (id: number | null) => void;
     getSelectedField: () => FormField | null;
 }
 
@@ -138,6 +141,7 @@ export const useFormStore = create<FormBuilderState>()(
             fields: [],
             selectedFieldId: null,
             formName: 'Untitled Form',
+            savedTemplateId: null,
             gridSnapEnabled: true,
             gridSize: 10,
 
@@ -202,8 +206,21 @@ export const useFormStore = create<FormBuilderState>()(
                 set({ fields: [], selectedFieldId: null });
             },
 
+            resetBuilder: () => {
+                set({
+                    fields: [],
+                    selectedFieldId: null,
+                    formName: 'Untitled Form',
+                    savedTemplateId: null,
+                });
+            },
+
             setFormName: (name) => {
                 set({ formName: name });
+            },
+
+            setSavedTemplateId: (id) => {
+                set({ savedTemplateId: id });
             },
 
             getSelectedField: () => {

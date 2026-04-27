@@ -100,6 +100,10 @@ export function SelectField({ field, preview = false }: InputFieldProps) {
 
 export function RadioField({ field, preview = false }: InputFieldProps) {
     const fontSize = field.fontSize ?? 14;
+    const options =
+        field.options && field.options.length > 0
+            ? field.options
+            : [{ label: 'Option 1', value: 'option1' }];
 
     return (
         <div className="flex h-full flex-col justify-start space-y-1.5 overflow-hidden">
@@ -111,10 +115,7 @@ export function RadioField({ field, preview = false }: InputFieldProps) {
                 {field.required && <span className="ml-1 text-red-500">*</span>}
             </label>
             <div className="flex-1 space-y-1.5 overflow-y-auto">
-                {(field.options?.length > 0
-                    ? field.options
-                    : [{ label: 'Option 1', value: 'option1' }]
-                ).map((opt) => (
+                {options.map((opt) => (
                     <div key={opt.value} className="flex items-center gap-2">
                         <input
                             type="radio"
@@ -140,6 +141,10 @@ export function RadioField({ field, preview = false }: InputFieldProps) {
 
 export function CheckboxField({ field, preview = false }: InputFieldProps) {
     const fontSize = field.fontSize ?? 14;
+    const options =
+        field.options && field.options.length > 0
+            ? field.options
+            : [{ label: 'Option 1', value: 'option1' }];
 
     return (
         <div className="flex h-full flex-col justify-start space-y-1.5 overflow-hidden">
@@ -151,10 +156,7 @@ export function CheckboxField({ field, preview = false }: InputFieldProps) {
                 {field.required && <span className="ml-1 text-red-500">*</span>}
             </label>
             <div className="flex-1 space-y-1.5 overflow-y-auto">
-                {(field.options?.length > 0
-                    ? field.options
-                    : [{ label: 'Option 1', value: 'option1' }]
-                ).map((opt) => (
+                {options.map((opt) => (
                     <div key={opt.value} className="flex items-center gap-2">
                         <input
                             type="checkbox"

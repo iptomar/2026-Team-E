@@ -3,9 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\FormTemplate;
-use App\Models\FormSubmission;
+use Illuminate\Http\Request;
 
 class FormController extends Controller
 {
@@ -18,23 +17,23 @@ class FormController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'structure' => 'required|array', // O JSON do Drag-and-Drop
-            'validation_sequence' => 'required|array',
-            'allowed_roles' => 'required|array',
+            'validation_sequence' => 'sometimes|array',
+            'allowed_roles' => 'sometimes|array',
         ]);
 
         // 2. Gravação: Usa o Model FormTemplate para inserir na BD
         $template = FormTemplate::create([
             'name' => $validated['name'],
             'structure' => $validated['structure'],
-            'validation_sequence' => $validated['validation_sequence'],
-            'allowed_roles' => $validated['allowed_roles'],
+            'validation_sequence' => $validated['validation_sequence'] ?? [],
+            'allowed_roles' => $validated['allowed_roles'] ?? [],
             'created_by' => auth()->id() ?? 1, // Usa o ID do admin logado
         ]);
 
         // 3. Resposta: Devolve o objeto criado e um código 201 (Created)
         return response()->json([
             'message' => 'Template criado com sucesso!',
-            'data' => $template
+            'data' => $template,
         ], 201);
     }
 
@@ -44,6 +43,7 @@ class FormController extends Controller
     public function showTemplate($id)
     {
         $template = FormTemplate::findOrFail($id);
+
         return response()->json($template);
     }
 
@@ -53,6 +53,7 @@ class FormController extends Controller
     public function indexTemplates()
     {
         $templates = FormTemplate::with('creator')->get();
+
         return response()->json($templates);
     }
 
@@ -66,15 +67,15 @@ class FormController extends Controller
         $validated = $request->validate([
             'name' => 'sometimes|required|string|max:255',
             'structure' => 'sometimes|required|array',
-            'validation_sequence' => 'sometimes|required|array',
-            'allowed_roles' => 'sometimes|required|array',
+            'validation_sequence' => 'sometimes|array',
+            'allowed_roles' => 'sometimes|array',
         ]);
 
         $template->update($validated);
 
         return response()->json([
             'message' => 'Template atualizado com sucesso!',
-            'data' => $template
+            'data' => $template,
         ]);
     }
 
@@ -87,7 +88,7 @@ class FormController extends Controller
         $template->delete();
 
         return response()->json([
-            'message' => 'Template eliminado com sucesso!'
+            'message' => 'Template eliminado com sucesso!',
         ]);
     }
 }
