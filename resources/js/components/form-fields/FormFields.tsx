@@ -111,9 +111,10 @@ export function RadioField({ field, preview = false }: InputFieldProps) {
                 {field.required && <span className="ml-1 text-red-500">*</span>}
             </label>
             <div className="flex-1 space-y-1.5 overflow-y-auto">
-                {(field.options?.length > 0
-                    ? field.options
-                    : [{ label: 'Option 1', value: 'option1' }]
+                {(
+                    field.options && field.options.length > 0
+                        ? field.options
+                        : [{ label: 'Option 1', value: 'option1' }]
                 ).map((opt) => (
                     <div key={opt.value} className="flex items-center gap-2">
                         <input
@@ -151,9 +152,10 @@ export function CheckboxField({ field, preview = false }: InputFieldProps) {
                 {field.required && <span className="ml-1 text-red-500">*</span>}
             </label>
             <div className="flex-1 space-y-1.5 overflow-y-auto">
-                {(field.options?.length > 0
-                    ? field.options
-                    : [{ label: 'Option 1', value: 'option1' }]
+                {(
+                    field.options && field.options.length > 0
+                        ? field.options
+                        : [{ label: 'Option 1', value: 'option1' }]
                 ).map((opt) => (
                     <div key={opt.value} className="flex items-center gap-2">
                         <input

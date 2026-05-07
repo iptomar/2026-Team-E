@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\FormTemplate;
 use App\Models\FormSubmission;
+use Illuminate\Support\Facades\File;
 
 class FormController extends Controller
 {
@@ -30,6 +31,9 @@ class FormController extends Controller
             'allowed_roles' => $validated['allowed_roles'],
             'created_by' => auth()->id() ?? 1, // Usa o ID do admin logado
         ]);
+
+        // Log do evento de criação do template (para auditoria)
+        $this->appendSaveTemplateEventChainLog($request, $validated, $template);
 
         // 3. Resposta: Devolve o objeto criado e um código 201 (Created)
         return response()->json([
@@ -90,4 +94,39 @@ class FormController extends Controller
             'message' => 'Template eliminado com sucesso!'
         ]);
     }
+
+    // Função auxiliar para escrever um log detalhado do processo de criação do template
+    protected function appendSaveTemplateEventChainLog(Request $request, array $validated, FormTemplate $template): void
+{
+    $logPath = storage_path('logs/save-template-event-chain.txt');
+
+    $lines = [
+        str_repeat('=', 100),
+        'Save template action',
+        'Timestamp: ' . now()->format('Y-m-d H:i:s.u'),
+        'Action: save button clicked in builder UI',
+        'Event: form builder collected template state from the store',
+        'Variable: formName => ' . $validated['name'],
+        'Variable: fields => ' . json_encode($validated['structure'], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE),
+        'Action: payload assembled for API call',
+        'Variable: validation_sequence => ' . json_encode($validated['validation_sequence']),
+        'Variable: allowed_roles => ' . json_encode($validated['allowed_roles']),
+        'Action: browser sends POST request to /api/templates with same-origin credentials',
+        'Action: Laravel matches request to route api/templates',
+        'Action: middleware auth:sanctum validates authenticated user',
+        'Action: FormController@storeTemplate is invoked',
+        'Variable: request payload => ' . json_encode($validated, JSON_UNESCAPED_UNICODE),
+        'Action: request data validated according to controller rules',
+        'Variable: validated data => ' . json_encode($validated, JSON_UNESCAPED_UNICODE),
+        'Action: FormTemplate model created in database',
+        'Variable: created_template_id => ' . $template->id,
+        'Variable: created_by => ' . $template->created_by,
+        'Action: API returns JSON response to frontend',
+        'Variable: response status => 201',
+        'Variable: response body => ' . json_encode($template->toArray(), JSON_UNESCAPED_UNICODE),
+        str_repeat('-', 100),
+    ];
+
+    File::append($logPath, implode(PHP_EOL, $lines) . PHP_EOL);
+}
 }
