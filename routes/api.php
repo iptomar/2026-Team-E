@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\FormController;
 use App\Http\Controllers\Api\FormSubmissionController;
+use App\Http\Controllers\Api\WorkflowController;
 
 
 Route::get('/user', function (Request $request) {
@@ -23,13 +24,14 @@ Route::put('/templates/{id}', [FormController::class, 'updateTemplate']);
 Route::delete('/templates/{id}', [FormController::class, 'destroyTemplate']);
 
 
-// Rota para submeter os dados preenchidos pelo utilizador
-Route::post('/submissions', [FormSubmissionController::class, 'storeSubmission']);
+// Rotas para workflows
+Route::get('/labels', [WorkflowController::class, 'getLabels']);
+Route::post('/templates/{template}/workflow', [WorkflowController::class, 'saveWorkflow']);
+Route::get('/templates/{template}/workflow', [WorkflowController::class, 'getWorkflow']);
+Route::get('/validations/pending', [WorkflowController::class, 'getPendingValidations'])->middleware('auth:sanctum');
+Route::post('/validations/{validation}/process', [WorkflowController::class, 'processValidation'])->middleware('auth:sanctum');
 
-// Rota para visualizar o formulário preenchido (Template + Dados)
-Route::get('/submissions/{id}', [FormSubmissionController::class, 'showSubmission']);
-
-// Rotas adicionais para submissões
-Route::get('/submissions', [FormSubmissionController::class, 'indexSubmissions']);
-Route::put('/submissions/{id}', [FormSubmissionController::class, 'updateSubmission']);
-Route::delete('/submissions/{id}', [FormSubmissionController::class, 'destroySubmission']);
+// Rotas para submissões (usando FormController atualizado)
+Route::post('/submissions', [FormController::class, 'submitForm'])->middleware('auth:sanctum');
+Route::get('/submissions', [FormController::class, 'getUserSubmissions'])->middleware('auth:sanctum');
+Route::get('/submissions/{id}', [FormController::class, 'getSubmission'])->middleware('auth:sanctum');

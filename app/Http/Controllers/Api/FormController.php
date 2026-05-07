@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\FormTemplate;
 use App\Models\FormSubmission;
+use App\Models\FormValidationStep;
+use App\Models\FormSubmissionValidation;
 use Illuminate\Support\Facades\File;
 
 class FormController extends Controller
@@ -97,36 +99,121 @@ class FormController extends Controller
 
     // Função auxiliar para escrever um log detalhado do processo de criação do template
     protected function appendSaveTemplateEventChainLog(Request $request, array $validated, FormTemplate $template): void
-{
-    $logPath = storage_path('logs/save-template-event-chain.txt');
+    {
+        $logPath = storage_path('logs/save-template-event-chain.txt');
 
-    $lines = [
-        str_repeat('=', 100),
-        'Save template action',
-        'Timestamp: ' . now()->format('Y-m-d H:i:s.u'),
-        'Action: save button clicked in builder UI',
-        'Event: form builder collected template state from the store',
-        'Variable: formName => ' . $validated['name'],
-        'Variable: fields => ' . json_encode($validated['structure'], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE),
-        'Action: payload assembled for API call',
-        'Variable: validation_sequence => ' . json_encode($validated['validation_sequence']),
-        'Variable: allowed_roles => ' . json_encode($validated['allowed_roles']),
-        'Action: browser sends POST request to /api/templates with same-origin credentials',
-        'Action: Laravel matches request to route api/templates',
-        'Action: middleware auth:sanctum validates authenticated user',
-        'Action: FormController@storeTemplate is invoked',
-        'Variable: request payload => ' . json_encode($validated, JSON_UNESCAPED_UNICODE),
-        'Action: request data validated according to controller rules',
-        'Variable: validated data => ' . json_encode($validated, JSON_UNESCAPED_UNICODE),
-        'Action: FormTemplate model created in database',
-        'Variable: created_template_id => ' . $template->id,
-        'Variable: created_by => ' . $template->created_by,
-        'Action: API returns JSON response to frontend',
-        'Variable: response status => 201',
-        'Variable: response body => ' . json_encode($template->toArray(), JSON_UNESCAPED_UNICODE),
-        str_repeat('-', 100),
-    ];
+        $lines = [
+            str_repeat('=', 100),
+            'Save template action',
+            'Timestamp: ' . now()->format('Y-m-d H:i:s.u'),
+            'Action: save button clicked in builder UI',
+            'Event: form builder collected template state from the store',
+            'Variable: formName => ' . $validated['name'],
+            'Variable: fields => ' . json_encode($validated['structure'], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE),
+            'Action: payload assembled for API call',
+            'Variable: validation_sequence => ' . json_encode($validated['validation_sequence']),
+            'Variable: allowed_roles => ' . json_encode($validated['allowed_roles']),
+            'Action: browser sends POST request to /api/templates with same-origin credentials',
+            'Action: Laravel matches request to route api/templates',
+            'Action: middleware auth:sanctum validates authenticated user',
+            'Action: FormController@storeTemplate is invoked',
+            'Variable: request payload => ' . json_encode($validated, JSON_UNESCAPED_UNICODE),
+            'Action: request data validated according to controller rules',
+            'Variable: validated data => ' . json_encode($validated, JSON_UNESCAPED_UNICODE),
+            'Action: FormTemplate model created in database',
+            'Variable: created_template_id => ' . $template->id,
+            'Variable: created_by => ' . $template->created_by,
+            'Action: API returns JSON response to frontend',
+            'Variable: response status => 201',
+            'Variable: response body => ' . json_encode($template->toArray(), JSON_UNESCAPED_UNICODE),
+            str_repeat('-', 100),
+        ];
 
-    File::append($logPath, implode(PHP_EOL, $lines) . PHP_EOL);
-}
+        File::append($logPath, implode(PHP_EOL, $lines) . PHP_EOL);
+    }
+
+    /**
+     * Passo 3: Submeter formulário preenchido pelo utilizador
+     */
+    public function submitForm(Request $request)
+    {
+        $validated = $request->validate([
+            'form_template_id' => 'required|exists:form_templates,id',
+            'data' => 'required|array', // Dados preenchidos pelo utilizador
+        ]);
+
+        try {
+            // Criar submissão
+            $submission = FormSubmission::create([
+                'form_template_id' => $validated['form_template_id'],
+                'data' => $validated['data'],
+                'submitted_by' => auth()->id() ?? 1,
+                'status' => 'pending_validation',
+            ]);
+
+            // Criar validações baseadas no workflow do template
+            $this->createSubmissionValidations($submission);
+
+            return response()->json([
+                'message' => 'Formulário submetido com sucesso!',
+                'data' => $submission->load('validations.validationStep')
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Erro ao submeter formulário',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Obter submissões de um utilizador
+     */
+    public function getUserSubmissions(Request $request)
+    {
+        $submissions = FormSubmission::with([
+            'template',
+            'validations.validationStep',
+            'validations.validator'
+        ])
+        ->where('submitted_by', $request->user()->id)
+        ->orderBy('created_at', 'desc')
+        ->get();
+
+        return response()->json($submissions);
+    }
+
+    /**
+     * Obter detalhes de uma submissão específica
+     */
+    public function getSubmission($id)
+    {
+        $submission = FormSubmission::with([
+            'template',
+            'validations.validationStep.labels',
+            'validations.validator'
+        ])
+        ->findOrFail($id);
+
+        return response()->json($submission);
+    }
+
+    /**
+     * Criar validações para uma nova submissão
+     */
+    private function createSubmissionValidations(FormSubmission $submission)
+    {
+        $validationSteps = FormValidationStep::where('form_template_id', $submission->form_template_id)
+            ->orderBy('order')
+            ->get();
+
+        foreach ($validationSteps as $step) {
+            FormSubmissionValidation::create([
+                'form_submission_id' => $submission->id,
+                'form_validation_step_id' => $step->id,
+                'status' => FormSubmissionValidation::STATUS_PENDING,
+                'order' => $step->order,
+            ]);
+        }
+    }
 }

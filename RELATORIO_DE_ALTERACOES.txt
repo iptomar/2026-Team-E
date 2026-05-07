@@ -1,0 +1,189 @@
+RELATÓRIO DE ALTERAÇÕES - SISTEMA DE WORKFLOW DE VALIDAÇÃO
+================================================================
+Data: 07/05/2026
+Descrição: Implementação completa do sistema de workflows de validação para formulários
+
+================================================================
+NOVOS FICHEIROS CRIADOS
+================================================================
+
+1. app/Models/Label.php
+   - Modelo Eloquent para gestão de labels
+   - Relacionamentos: users(), validationSteps()
+
+2. app/Models/FormValidationStep.php
+   - Modelo Eloquent para passos de validação
+   - Relacionamentos: formTemplate(), labels()
+   - Métodos: getResponsibleUsers(), canUserValidate()
+
+3. app/Models/FormSubmissionValidation.php
+   - Modelo Eloquent para validações de submissões
+   - Relacionamentos: formSubmission(), validationStep(), validator()
+   - Métodos: isPending(), isApproved(), isRejected(), approve(), reject()
+   - Constantes: STATUS_PENDING, STATUS_APPROVED, STATUS_REJECTED, STATUS_SKIPPED
+
+4. app/Http/Controllers/Api/WorkflowController.php
+   - Controller para gestão de workflows
+   - Métodos: getLabels(), saveWorkflow(), getWorkflow(), getPendingValidations(), processValidation()
+
+5. resources/js/services/workflowService.ts
+   - Serviço TypeScript para comunicação com API
+   - Interfaces: Label, WorkflowStep, WorkflowData, FormTemplate
+   - Métodos: getLabels(), saveWorkflow(), getWorkflow(), getPendingValidations(), processValidation()
+
+6. app/Services/WorkflowValidationService.php
+   - Serviço PHP para lógica de negócio de validações
+   - Métodos: createValidationCircuit(), canUserValidateStep(), processValidation()
+   - Métodos: getWorkflowStatus(), getNextAvailableStep(), getPendingValidationsForUser()
+
+================================================================
+ALTERAÇÕES A FICHEIROS EXISTENTES
+================================================================
+
+Ficheiro: app/Http/Controllers/Api/FormController.php
+----------------------------------------------------------------
+Linha 7-10: Adicionados imports dos novos models
+- ANTES: use App\Models\FormTemplate; use App\Models\FormSubmission;
+- DEPOIS: use App\Models\FormTemplate; use App\Models\FormSubmission; use App\Models\FormValidationStep; use App\Models\FormSubmissionValidation;
+
+Linha 94-179: Adicionados novos métodos para submissão e validação
+- ADICIONADO método submitForm() (linhas 96-128)
+- ADICIONADO método getUserSubmissions() (linhas 130-145)
+- ADICIONADO método getSubmission() (linhas 147-160)
+- ADICIONADO método createSubmissionValidations() (linhas 162-179)
+
+Ficheiro: routes/api.php
+----------------------------------------------------------------
+Linha 7: Adicionado import do WorkflowController
+- ANTES: use App\Http\Controllers\Api\FormSubmissionController;
+- DEPOIS: use App\Http\Controllers\Api\FormSubmissionController; use App\Http\Controllers\Api\WorkflowController;
+
+Linha 27-37: Substituídas rotas de submissão e adicionadas rotas de workflow
+- ANTES: Route::post('/submissions', [FormSubmissionController::class, 'storeSubmission']);
+         Route::get('/submissions/{id}', [FormSubmissionController::class, 'showSubmission']);
+         Route::get('/submissions', [FormSubmissionController::class, 'indexSubmissions']);
+         Route::put('/submissions/{id}', [FormSubmissionController::class, 'updateSubmission']);
+         Route::delete('/submissions/{id}', [FormSubmissionController::class, 'destroySubmission']);
+- DEPOIS: Route::get('/labels', [WorkflowController::class, 'getLabels']);
+         Route::post('/templates/{template}/workflow', [WorkflowController::class, 'saveWorkflow']);
+         Route::get('/templates/{template}/workflow', [WorkflowController::class, 'getWorkflow']);
+         Route::get('/validations/pending', [WorkflowController::class, 'getPendingValidations'])->middleware('auth:sanctum');
+         Route::post('/validations/{validation}/process', [WorkflowController::class, 'processValidation'])->middleware('auth:sanctum');
+         Route::post('/submissions', [FormController::class, 'submitForm'])->middleware('auth:sanctum');
+         Route::get('/submissions', [FormController::class, 'getUserSubmissions'])->middleware('auth:sanctum');
+         Route::get('/submissions/{id}', [FormController::class, 'getSubmission'])->middleware('auth:sanctum');
+
+Ficheiro: resources/js/pages/workflow.tsx
+----------------------------------------------------------------
+Linha 1-15: Adicionados imports e tipificações
+- ANTES: import React, { useState, useCallback } from 'react';
+- DEPOIS: import React, { useState, useCallback, useEffect } from 'react';
+- ADICIONADO: import { Node, Edge } from 'reactflow';
+- ADICIONADO: import workflowService, { Label, WorkflowStep } from '@/services/workflowService';
+
+Linha 19-27: Substituídos dados estáticos por estado dinâmico
+- ANTES: const STATIC_LABELS = [...];
+         const [nodes, setNodes] = useState([]);
+         const [edges, setEdges] = useState([]);
+         const [selectedNode, setSelectedNode] = useState(null);
+- DEPOIS: const [nodes, setNodes] = useState<Node[]>([]);
+         const [edges, setEdges] = useState<Edge[]>([]);
+         const [selectedNode, setSelectedNode] = useState<Node | null>(null);
+         const [labels, setLabels] = useState<Label[]>([]);
+         const [loading, setLoading] = useState(true);
+         const [templateId, setTemplateId] = useState<number | null>(null);
+
+Linha 31-45: Adicionado useEffect para carregar labels da API
+- ADICIONADO: useEffect para loadLabels()
+
+Linha 66-91: Adicionadas funções para integração com API
+- ADICIONADO: nodesToWorkflowSteps()
+- ADICIONADO: saveWorkflow()
+
+Linha 95-101: Corrigida função updateNodeData com tipificação
+- ANTES: const updateNodeData = (newData) => { ... }
+- DEPOIS: const updateNodeData = (newData: any) => { if (!selectedNode) return; ... }
+
+Linha 104-115: Corrigida função toggleLabel com tipificação
+- ANTES: const toggleLabel = (label) => { ... }
+- DEPOIS: const toggleLabel = (label: Label) => { if (!selectedNode) return; ... }
+
+Linha 117-123: Adicionado estado de loading
+- ADICIONADO: if (loading) { return (<div>...</div>); }
+
+Linha 128-143: Atualizado sidebar esquerdo com botão de salvar
+- ANTES: <aside className="w-64 border-r bg-white p-4"><button onClick={addNewStep}>...</button></aside>
+- DEPOIS: <aside className="w-64 border-r bg-white p-4"><div className="space-y-4"><button onClick={addNewStep}>...</button><button onClick={saveWorkflow}>💾 Guardar Workflow</button></div></aside>
+
+Linha 194-207: Substituídos labels estáticos por labels dinâmicos
+- ANTES: {STATIC_LABELS.map(label => { ... })}
+- DEPOIS: {labels.map(label => { ... })}
+
+================================================================
+MIGRAÇÕES NECESSÁRIAS
+================================================================
+
+A migration já existente (2026_04_24_090950_template_validation_sequence.php) 
+contém as tabelas necessárias:
+- labels
+- users_labels (tabela pivot)
+- form_validation_steps
+
+É necessário criar uma migration adicional para a tabela form_submission_validations:
+- id
+- form_submission_id (foreign key)
+- form_validation_step_id (foreign key)
+- status (enum: pending, approved, rejected, skipped)
+- validated_by (foreign key, nullable)
+- validated_at (timestamp, nullable)
+- comments (text, nullable)
+- order (integer)
+- timestamps
+
+================================================================
+FUNCIONALIDADES IMPLEMENTADAS
+================================================================
+
+1. Backend:
+   - Criação e gestão de labels
+   - Definição de circuitos de validação para templates
+   - Processamento de validações sequenciais
+   - Verificação de permissões por utilizador
+   - Gestão de estados de validação
+
+2. Frontend:
+   - Editor visual de workflows com ReactFlow
+   - Integração com API real para labels
+   - Salvamento de workflows na base de dados
+   - Interface intuitiva para configuração de passos
+
+3. Serviços:
+   - Lógica de negócio centralizada
+   - Validação de permissões
+   - Gestão de estados de workflow
+   - Integração com models Eloquent
+
+================================================================
+PRÓXIMOS PASSOS RECOMENDADOS
+================================================================
+
+1. Criar migration para tabela form_submission_validations
+2. Implementar página de validações pendentes para utilizadores
+3. Criar página de detalhes de submissão com status do workflow
+4. Implementar notificações para validadores
+5. Adicionar sistema de logs e auditoria
+6. Criar interface para administração de labels e utilizadores
+7. Implementar testes automatizados para os serviços
+
+================================================================
+RESUMO
+================================================================
+
+Implementação completa do sistema de workflows de validação que permite:
+- Administradores definirem circuitos de validação complexos
+- Utilizadores submeterem formulários que seguem workflows pré-definidos
+- Validadores aprovarem/rejeitarem passos de forma sequencial
+- Sistema robusto de permissões e estados
+- Interface moderna e responsiva para gestão de workflows
+
+O sistema está pronto para uso após execução das migrations pendentes.
