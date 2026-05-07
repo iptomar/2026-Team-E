@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id(); // id do template
             $table->string('name'); // nome do formulário (ex: Pedido de marcação de férias)
             $table->json('structure'); // estrutura do template (componentes drag-and-drop)
-            $table->json('validation_sequence'); // lista de IDs/Cargos que validam (ex: [1, 5, 10])
+            //$table->json('validation_sequence'); // lista de IDs/Cargos que validam (ex: [1, 5, 10])
             $table->json('allowed_roles'); // que cargos podem aceder/preencher
             $table->foreignId('created_by')->constrained('users'); // quem criou
             $table->timestamps();
@@ -27,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
+        Schema::dropIfExists('form_templates');
     }
 };
