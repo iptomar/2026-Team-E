@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\FormController;
 use App\Http\Controllers\Api\FormSubmissionController;
+use App\Http\Controllers\Api\LabelController;
 
 
 Route::get('/user', function (Request $request) {
@@ -33,3 +34,21 @@ Route::get('/submissions/{id}', [FormSubmissionController::class, 'showSubmissio
 Route::get('/submissions', [FormSubmissionController::class, 'indexSubmissions']);
 Route::put('/submissions/{id}', [FormSubmissionController::class, 'updateSubmission']);
 Route::delete('/submissions/{id}', [FormSubmissionController::class, 'destroySubmission']);
+
+
+// Listar todas as labels disponíveis para o editor
+Route::get('/labels', [LabelController::class, 'index']); 
+
+// Criar/Editar labels (Cargos/Departamentos)
+Route::post('/labels', [LabelController::class, 'store']);
+Route::put('/labels/{id}', [LabelController::class, 'update']);
+
+
+// Salvar todo o fluxo desenhado no React Flow de uma vez
+// Esse endpoint processa o JSON do canvas e sincroniza a tabela form_validation_steps
+Route::post('/templates/{templateId}/workflow', [FormController::class, 'syncWorkflow']);
+
+// Buscar o workflow de um template para carregar no editor
+Route::get('/templates/{templateId}/workflow', [FormController::class, 'getWorkflow']);
+
+

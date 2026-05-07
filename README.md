@@ -85,7 +85,7 @@ This will start:
 
 ### Test Login Credentials
 
-- Email: 	est@example.com
+- Email: 	test@example.com
 - Password: password
 
 ## 🔧 Development Guidelines

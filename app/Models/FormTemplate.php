@@ -4,7 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-
+use App\Models\User;
+use App\Models\FormSubmission;
+use App\Models\FormValidationStep;
 class FormTemplate extends Model
 {
     use HasFactory;
@@ -40,4 +42,13 @@ class FormTemplate extends Model
     {
         return $this->hasMany(FormSubmission::class);
     }
+
+    // app/Models/FormTemplate.php
+
+    public function validationSteps()
+    {
+        // Verifique se o nome da classe está correto e importado
+        return $this->hasMany(FormValidationStep::class);
+    }
+    
 }
