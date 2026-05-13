@@ -1,9 +1,8 @@
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, Folder, DraftingCompass,GitBranch,CopyPlus, Menu, Search } from 'lucide-react';
+import { BookOpen, Folder, DraftingCompass, GitBranch, CopyPlus, Menu, Search, FileText } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import AppLogoIcon from '@/components/app-logo-icon';
 import { Breadcrumbs } from '@/components/breadcrumbs';
-import SearchTemplates from './search/template-search';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -33,8 +32,9 @@ import { UserMenuContent } from '@/components/user-menu-content';
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import { useInitials } from '@/hooks/use-initials';
 import { cn, toUrl } from '@/lib/utils';
-import { dashboard,builder,workflow } from '@/routes';
+import { dashboard, builder, workflow, formsList } from '@/routes';
 import type { BreadcrumbItem, NavItem } from '@/types';
+import SearchTemplates from './search/template-search';
 
 type Props = {
     breadcrumbs?: BreadcrumbItem[];
@@ -55,6 +55,11 @@ const mainNavItems: NavItem[] = [
         title: 'Templates',
         href: dashboard(),
         icon: CopyPlus,
+    },
+    {
+        title: 'Formulários',
+        href: formsList(),
+        icon: FileText,
     },
 ];
 

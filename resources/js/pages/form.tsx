@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
 import { Head } from '@inertiajs/react';
+import React, { useState, useEffect } from 'react';
 
 interface Props {
     id: number;
