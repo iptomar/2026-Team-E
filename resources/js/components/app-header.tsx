@@ -3,6 +3,7 @@ import { BookOpen, Folder, DraftingCompass,GitBranch,CopyPlus, Menu, Search } fr
 import AppLogo from '@/components/app-logo';
 import AppLogoIcon from '@/components/app-logo-icon';
 import { Breadcrumbs } from '@/components/breadcrumbs';
+import SearchTemplates from './search/template-search';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {

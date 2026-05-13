@@ -95,9 +95,9 @@ class FormController extends Controller
         ]);
     }
 
-<<<<<<< HEAD
+
     
-=======
+
     // Função auxiliar para escrever um log detalhado do processo de criação do template
     protected function appendSaveTemplateEventChainLog(Request $request, array $validated, FormTemplate $template): void
 {
@@ -132,5 +132,5 @@ class FormController extends Controller
 
     File::append($logPath, implode(PHP_EOL, $lines) . PHP_EOL);
 }
->>>>>>> d0639aea7f9456df23e30ca986565b1bb7e50d52
+
 }
