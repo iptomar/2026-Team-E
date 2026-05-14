@@ -46,11 +46,6 @@ const mainNavItems: NavItem[] = [
             icon: DraftingCompass,
     },
     {
-            title: 'Worflows',
-            href: workflow(),
-            icon: GitBranch,
-    },
-    {
         title: 'Templates',
         href: dashboard(),
         icon: CopyPlus,

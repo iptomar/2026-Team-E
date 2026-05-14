@@ -24,11 +24,6 @@ const mainNavItems: NavItem[] = [
             icon: LayoutGrid,
     },
     {
-            title: 'Worflows',
-            href: workflow(),
-            icon: LayoutGrid,
-    },
-    {
         title: 'Templates',
         href: dashboard(),
         icon: LayoutGrid,
