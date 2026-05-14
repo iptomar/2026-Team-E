@@ -1,5 +1,15 @@
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, Folder, DraftingCompass, GitBranch, CopyPlus, Menu, Search, FileText } from 'lucide-react';
+import {
+    BookOpen,
+    ClipboardList,
+    CopyPlus,
+    DraftingCompass,
+    FileText,
+    Folder,
+    GitBranch,
+    Menu,
+    Search,
+} from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import AppLogoIcon from '@/components/app-logo-icon';
 import { Breadcrumbs } from '@/components/breadcrumbs';
@@ -34,7 +44,6 @@ import { useInitials } from '@/hooks/use-initials';
 import { cn, toUrl } from '@/lib/utils';
 import { dashboard, builder, workflow, formsList } from '@/routes';
 import type { BreadcrumbItem, NavItem } from '@/types';
-import SearchTemplates from './search/template-search';
 
 type Props = {
     breadcrumbs?: BreadcrumbItem[];
@@ -42,14 +51,14 @@ type Props = {
 
 const mainNavItems: NavItem[] = [
     {
-            title: 'Canvas',
-            href: builder(),
-            icon: DraftingCompass,
+        title: 'Canvas',
+        href: builder(),
+        icon: DraftingCompass,
     },
     {
-            title: 'Worflows',
-            href: workflow(),
-            icon: GitBranch,
+        title: 'Workflows',
+        href: workflow(),
+        icon: GitBranch,
     },
     {
         title: 'Templates',
@@ -60,6 +69,11 @@ const mainNavItems: NavItem[] = [
         title: 'Formulários',
         href: formsList(),
         icon: FileText,
+    },
+    {
+        title: 'Preencher',
+        href: '/preencher-formularios',
+        icon: ClipboardList,
     },
 ];
 

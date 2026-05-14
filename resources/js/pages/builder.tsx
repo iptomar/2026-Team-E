@@ -8,7 +8,7 @@ import {
     KeyboardSensor,
 } from '@dnd-kit/core';
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import { useState, useRef, useCallback } from 'react';
 import { Canvas } from '@/components/builder/Canvas';
 import { ComponentsSidebar } from '@/components/builder/ComponentsSidebar';
@@ -178,9 +178,13 @@ return;
                 return;
             }
 
-            await response.json();
+            const result = await response.json();
+            const templateId = result?.data?.id;
             setSaveStatus('success');
             setSaveMessage('Template gravado com sucesso.');
+            if (templateId) {
+                router.visit(`/workflow?templateId=${templateId}`);
+            }
         } catch (error) {
             setSaveStatus('error');
             setSaveMessage('Erro de rede ao gravar o template.');

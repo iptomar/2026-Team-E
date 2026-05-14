@@ -132,5 +132,4 @@ class FormController extends Controller
 
     File::append($logPath, implode(PHP_EOL, $lines) . PHP_EOL);
 }
-
 }
