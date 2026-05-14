@@ -13,18 +13,13 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { dashboard, builder, workflow } from '@/routes';
+import { dashboard, builder } from '@/routes';
 import type { NavItem } from '@/types';
 
 const mainNavItems: NavItem[] = [
     {
         title: 'Canvas',
         href: builder(),
-        icon: LayoutGrid,
-    },
-    {
-        title: 'Worflows',
-        href: workflow(),
         icon: LayoutGrid,
     },
     {

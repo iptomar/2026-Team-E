@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import ReactFlow, { 
     addEdge, 
     Background, 
@@ -25,9 +25,19 @@ const STATIC_LABELS = [
 ];
 
 const WorkflowEditor = () => {
+    const [templateId, setTemplateId] = useState<string | null>(null);
     const [nodes, setNodes] = useState([]);
     const [edges, setEdges] = useState([]);
     const [selectedNode, setSelectedNode] = useState(null);
+
+    useEffect(() => {
+        if (typeof window === 'undefined') {
+            return;
+        }
+
+        const params = new URLSearchParams(window.location.search);
+        setTemplateId(params.get('templateId'));
+    }, []);
 
     const onNodesChange = useCallback((changes) => setNodes((nds) => applyNodeChanges(changes, nds)), []);
     const onEdgesChange = useCallback((changes) => setEdges((eds) => applyEdgeChanges(changes, eds)), []);
@@ -80,6 +90,11 @@ const WorkflowEditor = () => {
                 >
                     + Novo Passo de Validação
                 </button>
+                {templateId ? (
+                    <div className="mt-4 rounded border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">
+                        Template ID: <span className="font-semibold">{templateId}</span>
+                    </div>
+                ) : null}
             </aside>
 
             {/* CANVAS */}

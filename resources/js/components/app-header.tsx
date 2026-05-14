@@ -5,7 +5,6 @@ import {
     CopyPlus,
     DraftingCompass,
     Folder,
-    GitBranch,
     Menu,
     Search,
 } from 'lucide-react';
@@ -41,7 +40,7 @@ import { UserMenuContent } from '@/components/user-menu-content';
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import { useInitials } from '@/hooks/use-initials';
 import { cn, toUrl } from '@/lib/utils';
-import { dashboard, builder, workflow } from '@/routes';
+import { dashboard, builder } from '@/routes';
 import type { BreadcrumbItem, NavItem } from '@/types';
 
 type Props = {
@@ -53,11 +52,6 @@ const mainNavItems: NavItem[] = [
         title: 'Canvas',
         href: builder(),
         icon: DraftingCompass,
-    },
-    {
-        title: 'Worflows',
-        href: workflow(),
-        icon: GitBranch,
     },
     {
         title: 'Templates',
