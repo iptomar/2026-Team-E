@@ -13,6 +13,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('workflow', 'workflow')->name('workflow');
     Route::inertia('form', 'form')->name('form');
     Route::inertia('forms-list', 'forms-list')->name('forms-list');
+    Route::redirect('form', 'preencher-formularios');
+    Route::inertia('preencher-formularios', 'form')->name('forms.fill');
+    Route::inertia('edit', 'edit')->name('edit');
 
 });
 
