@@ -89,22 +89,22 @@ function Card({
     });
 
     return (
-        <div className="group w-[280px] shrink-0 snap-start rounded-2xl border border-gray-200 bg-white p-4 transition-all duration-200 hover:-translate-y-1 hover:border-indigo-300 hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900">
+        <div className="group w-[280px] shrink-0 snap-start rounded-2xl border border-gray-200 bg-white p-4 transition-all duration-200 hover:-translate-y-1 hover:border-indigo-300 hover:shadow-md">
             <div className="mb-3 flex items-start justify-between">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-50 to-purple-50 text-indigo-600 dark:from-indigo-500/10 dark:to-purple-500/10 dark:text-indigo-400">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-50 to-purple-50 text-indigo-600">
                     {icon}
                 </div>
 
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <button className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-neutral-800 dark:hover:text-gray-200">
+                        <button className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-600">
                             <MoreVertical className="h-4 w-4" />
                         </button>
                     </DropdownMenuTrigger>
 
                     <DropdownMenuContent
                         align="end"
-                        className="w-48 dark:border-neutral-800 dark:bg-neutral-900"
+                        className="w-48"
                     >
                         <DropdownMenuItem className="gap-2" onClick={onPreview}>
                             <Eye className="h-4 w-4" />
@@ -144,17 +144,17 @@ function Card({
             </div>
 
             <div className="flex-1">
-                <h3 className="mb-1 text-sm font-semibold text-gray-900 dark:text-white">
+                <h3 className="mb-1 text-sm font-semibold text-gray-900">
                     {name}
                 </h3>
 
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+                <p className="text-xs text-gray-500">
                     {formattedDate}
                 </p>
             </div>
 
             {showFillButton && (
-                <div className="mt-4 border-t border-gray-100 pt-4 dark:border-neutral-800">
+                <div className="mt-4 border-t border-gray-100 pt-4">
                     <Button
                         size="sm"
                         className="w-full gap-2 bg-indigo-600 text-xs text-white hover:bg-indigo-700"
@@ -200,8 +200,8 @@ function PreviewModal({
                 </DialogHeader>
 
                 <div className="mt-4 space-y-4">
-                    <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-neutral-700 dark:bg-neutral-800">
-                        <h4 className="mb-3 text-sm font-medium text-gray-900 dark:text-white">
+                    <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                        <h4 className="mb-3 text-sm font-medium text-gray-900">
                             Estrutura do Formulário
                         </h4>
 
@@ -210,39 +210,39 @@ function PreviewModal({
                                 {data.data.map((field: any, index: number) => (
                                     <div
                                         key={index}
-                                        className="flex items-center gap-2 rounded-md border border-gray-200 bg-white p-3 dark:border-neutral-700 dark:bg-neutral-900"
+                                        className="flex items-center gap-2 rounded-md border border-gray-200 bg-white p-3"
                                     >
-                                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-indigo-100 text-xs font-medium text-indigo-600 dark:bg-indigo-900 dark:text-indigo-300">
+                                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-indigo-100 text-xs font-medium text-indigo-600">
                                             {index + 1}
                                         </span>
                                         <div className="flex-1">
-                                            <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                            <p className="text-sm font-medium text-gray-900">
                                                 {field.label || field.name || `Campo ${index + 1}`}
                                             </p>
-                                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                                            <p className="text-xs text-gray-500">
                                                 Tipo: {field.type || 'text'}
                                                 {field.required && ' • Obrigatório'}
                                             </p>
                                         </div>
-                                        <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600 dark:bg-neutral-700 dark:text-gray-300">
+                                        <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
                                             {field.type || 'text'}
                                         </span>
                                     </div>
                                 ))}
                             </div>
                         ) : (
-                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                            <p className="text-sm text-gray-500">
                                 Sem campos definidos.
                             </p>
                         )}
                     </div>
 
                     {isForm && data.data?.submitted_data && (
-                        <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-neutral-700 dark:bg-neutral-800">
-                            <h4 className="mb-3 text-sm font-medium text-gray-900 dark:text-white">
+                        <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                            <h4 className="mb-3 text-sm font-medium text-gray-900">
                                 Dados Submetidos
                             </h4>
-                            <pre className="text-xs text-gray-600 dark:text-gray-400 overflow-x-auto">
+                            <pre className="text-xs text-gray-600 text-gray-500 overflow-x-auto">
                                 {JSON.stringify(data.data.submitted_data, null, 2)}
                             </pre>
                         </div>
@@ -271,16 +271,16 @@ function EmptyState({
     onClick?: () => void;
 }) {
     return (
-        <div className="mx-auto flex max-w-sm flex-col items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-gray-50/70 px-6 py-12 text-center dark:border-neutral-700 dark:bg-neutral-900/40">
-            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-gray-100 dark:bg-neutral-800">
-                <FileText className="h-6 w-6 text-gray-500 dark:text-gray-400" />
+        <div className="mx-auto flex max-w-sm flex-col items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-gray-50/70 px-6 py-12 text-center">
+            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-gray-100">
+                <FileText className="h-6 w-6 text-gray-500" />
             </div>
 
-            <p className="mb-1 text-sm font-semibold text-gray-900 dark:text-white">
+            <p className="mb-1 text-sm font-semibold text-gray-900">
                 {title}
             </p>
 
-            <p className="mb-5 text-xs text-gray-500 dark:text-gray-400">
+            <p className="mb-5 text-xs text-gray-500">
                 {description}
             </p>
 
@@ -300,7 +300,7 @@ function EmptyState({
 function LoadingState() {
     return (
         <div className="flex h-64 items-center justify-center">
-            <div className="text-gray-500 dark:text-gray-400">
+            <div className="text-gray-500">
                 Carregando...
             </div>
         </div>
@@ -309,8 +309,8 @@ function LoadingState() {
 
 function ErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
     return (
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-red-200 bg-red-50/50 px-6 py-8 text-center dark:border-red-900/30 dark:bg-red-900/10">
-            <p className="mb-3 text-sm font-medium text-red-600 dark:text-red-400">
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-red-200 bg-red-50/50 px-6 py-8 text-center">
+            <p className="mb-3 text-sm font-medium text-red-600">
                 {message}
             </p>
             <Button size="sm" variant="outline" onClick={onRetry}>
@@ -496,15 +496,15 @@ export default function FormsList() {
                 data={previewData}
             />
 
-            <div className="flex h-full flex-1 flex-col bg-gray-100 text-gray-900 dark:bg-neutral-950 dark:text-white">
+            <div className="flex h-full flex-1 flex-col bg-gray-100 text-gray-900">
                 {/* Header */}
-                <div className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 bg-white/80 px-6 py-4 backdrop-blur-xl dark:border-neutral-800 dark:bg-neutral-950/80">
+                <div className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 bg-white/80 px-6 py-4 backdrop-blur-xl">
                     <div>
                         <h1 className="text-xl font-semibold">
                             Formulários e Templates
                         </h1>
 
-                        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                        <p className="mt-1 text-sm text-gray-500">
                             Gere os seus formulários e templates reutilizáveis
                         </p>
                     </div>
@@ -529,11 +529,11 @@ export default function FormsList() {
                             <section>
                                 <div className="mb-5 flex items-center justify-between">
                                     <div>
-                                        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                                        <h2 className="text-lg font-semibold text-gray-900 text-gray-900">
                                             Formulários
                                         </h2>
 
-                                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                                        <p className="text-sm text-gray-500 text-gray-500">
                                             Formulários criados recentemente
                                         </p>
                                     </div>
@@ -574,11 +574,11 @@ export default function FormsList() {
                             {/* Templates */}
                             <section>
                                 <div className="mb-5">
-                                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                                    <h2 className="text-lg font-semibold text-gray-900 text-gray-900">
                                         Templates
                                     </h2>
 
-                                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                                    <p className="text-sm text-gray-500 text-gray-500">
                                         Templates reutilizáveis para novos formulários
                                     </p>
                                 </div>
