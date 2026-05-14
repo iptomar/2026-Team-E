@@ -269,11 +269,5 @@ export default function FormBuilder() {
     );
 }
 
-FormBuilder.layout = {
-    breadcrumbs: [
-        {
-            title: 'Form Builder',
-            href: '/builder',
-        },
-    ],
-};
+// To:
+FormBuilder.layout = (page: React.ReactNode) => page;
