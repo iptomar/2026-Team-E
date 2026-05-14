@@ -1,0 +1,283 @@
+import { Head, Link } from '@inertiajs/react';
+import { Button } from '@/components/ui/button';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+
+import {
+    Plus,
+    MoreVertical,
+    Eye,
+    Pencil,
+    Copy,
+    Pin,
+    Trash2,
+    FileText,
+    LayoutGrid,
+    ClipboardList,
+} from 'lucide-react';
+
+interface CardProps {
+    name: string;
+    description?: string;
+    icon?: React.ReactNode;
+    actions?: React.ReactNode;
+}
+
+function Card({ name, description, icon, actions }: CardProps) {
+    return (
+        <div className="group w-[280px] shrink-0 snap-start rounded-2xl border border-gray-200 bg-white p-4 transition-all duration-200 hover:-translate-y-1 hover:border-indigo-300 hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900">
+            <div className="mb-3 flex items-start justify-between">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-50 to-purple-50 text-indigo-600 dark:from-indigo-500/10 dark:to-purple-500/10 dark:text-indigo-400">
+                    {icon}
+                </div>
+
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <button className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-neutral-800 dark:hover:text-gray-200">
+                            <MoreVertical className="h-4 w-4" />
+                        </button>
+                    </DropdownMenuTrigger>
+
+                    <DropdownMenuContent
+                        align="end"
+                        className="w-48 dark:border-neutral-800 dark:bg-neutral-900"
+                    >
+                        <DropdownMenuItem className="gap-2">
+                            <Eye className="h-4 w-4" />
+                            Preview
+                        </DropdownMenuItem>
+
+                        <DropdownMenuItem className="gap-2">
+                            <Pencil className="h-4 w-4" />
+                            Editar
+                        </DropdownMenuItem>
+
+                        <DropdownMenuItem className="gap-2">
+                            <Copy className="h-4 w-4" />
+                            Duplicar
+                        </DropdownMenuItem>
+
+                        <DropdownMenuItem className="gap-2">
+                            <Pin className="h-4 w-4" />
+                            Pin
+                        </DropdownMenuItem>
+
+                        <DropdownMenuSeparator />
+
+                        <DropdownMenuItem className="gap-2 text-red-600 focus:text-red-600">
+                            <Trash2 className="h-4 w-4" />
+                            Eliminar
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            </div>
+
+            <div className="flex-1">
+                <h3 className="mb-1 text-sm font-semibold text-gray-900 dark:text-white">
+                    {name}
+                </h3>
+
+                {description && (
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                        {description}
+                    </p>
+                )}
+            </div>
+
+            {actions && (
+                <div className="mt-4 border-t border-gray-100 pt-4 dark:border-neutral-800">
+                    {actions}
+                </div>
+            )}
+        </div>
+    );
+}
+
+function EmptyState({
+    title,
+    description,
+    buttonText,
+    onClick,
+}: {
+    title: string;
+    description: string;
+    buttonText?: string;
+    onClick?: () => void;
+}) {
+    return (
+        <div className="mx-auto flex max-w-sm flex-col items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-gray-50/70 px-6 py-12 text-center dark:border-neutral-700 dark:bg-neutral-900/40">
+            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-gray-100 dark:bg-neutral-800">
+                <FileText className="h-6 w-6 text-gray-500 dark:text-gray-400" />
+            </div>
+
+            <p className="mb-1 text-sm font-semibold text-gray-900 dark:text-white">
+                {title}
+            </p>
+
+            <p className="mb-5 text-xs text-gray-500 dark:text-gray-400">
+                {description}
+            </p>
+
+            {buttonText && onClick && (
+                <Button
+                    size="sm"
+                    className="bg-indigo-600 text-white hover:bg-indigo-700"
+                    onClick={onClick}
+                >
+                    {buttonText}
+                </Button>
+            )}
+        </div>
+    );
+}
+
+export default function FormsList() {
+    const formsEmpty = false;
+    const templatesEmpty = false;
+
+    const forms = [
+        {
+            id: '1',
+            name: 'Formulário de Avaliação',
+            description: 'Avaliação de desempenho de funcionários',
+        },
+        {
+            id: '2',
+            name: 'Pedido de Férias',
+            description: 'Formulário para solicitar férias',
+        },
+    ];
+
+    const templates = [
+        {
+            id: '1',
+            name: 'Template Básico',
+            description: 'Template com campos essenciais',
+        },
+        {
+            id: '2',
+            name: 'Template Completo',
+            description: 'Template abrangente',
+        },
+    ];
+
+    return (
+        <>
+            <Head title="Formulários e Templates" />
+
+            <div className="flex h-full flex-1 flex-col bg-gray-100 text-gray-900 dark:bg-neutral-950 dark:text-white">
+                {/* Header */}
+                <div className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 bg-white/80 px-6 py-4 backdrop-blur-xl dark:border-neutral-800 dark:bg-neutral-950/80">
+                    <div>
+                        <h1 className="text-xl font-semibold">
+                            Formulários e Templates
+                        </h1>
+
+                        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                            Gere os seus formulários e templates reutilizáveis
+                        </p>
+                    </div>
+
+                    <Link href="/builder">
+                        <Button className="gap-2 bg-indigo-600 text-white hover:bg-indigo-700">
+                            <Plus className="h-4 w-4" />
+                            Criar formulário
+                        </Button>
+                    </Link>
+                </div>
+
+                {/* Content */}
+                <div className="flex-1 overflow-y-auto p-6">
+                    <div className="space-y-10">
+                        {/* Forms */}
+                        <section>
+                            <div className="mb-5 flex items-center justify-between">
+                                <div>
+                                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                                        Formulários
+                                    </h2>
+
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                                        Formulários criados recentemente
+                                    </p>
+                                </div>
+                            </div>
+
+                            {formsEmpty ? (
+                                <EmptyState
+                                    title="Sem formulários ainda"
+                                    description="Clique em 'Criar formulário' para começar"
+                                />
+                            ) : (
+                                <div className="flex snap-x gap-4 overflow-x-auto pb-2">
+                                    {forms.map((form) => (
+                                        <Card
+                                            key={form.id}
+                                            name={form.name}
+                                            description={form.description}
+                                            icon={<FileText className="h-5 w-5" />}
+                                            actions={
+                                                <Button
+                                                    size="sm"
+                                                    className="w-full gap-2 bg-indigo-600 text-xs text-white hover:bg-indigo-700"
+                                                >
+                                                    <ClipboardList className="h-4 w-4" />
+                                                    Preencher
+                                                </Button>
+                                            }
+                                        />
+                                    ))}
+                                </div>
+                            )}
+                        </section>
+
+                        {/* Templates */}
+                        <section>
+                            <div className="mb-5">
+                                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                                    Templates
+                                </h2>
+
+                                <p className="text-sm text-gray-500 dark:text-gray-400">
+                                    Templates reutilizáveis para novos formulários
+                                </p>
+                            </div>
+
+                            {templatesEmpty ? (
+                                <EmptyState
+                                    title="Sem templates ainda"
+                                    description="Crie templates no builder para reutilizar"
+                                />
+                            ) : (
+                                <div className="flex snap-x gap-4 overflow-x-auto pb-2">
+                                    {templates.map((template) => (
+                                        <Card
+                                            key={template.id}
+                                            name={template.name}
+                                            description={template.description}
+                                            icon={<LayoutGrid className="h-5 w-5" />}
+                                        />
+                                    ))}
+                                </div>
+                            )}
+                        </section>
+                    </div>
+                </div>
+            </div>
+        </>
+    );
+}
+
+FormsList.layout = {
+    breadcrumbs: [
+        {
+            title: 'Formulários e Templates',
+            href: '/forms-list',
+        },
+    ],
+};

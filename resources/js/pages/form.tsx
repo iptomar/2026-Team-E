@@ -1,8 +1,8 @@
 import { Head } from '@inertiajs/react';
+import React, { useState, useEffect } from 'react';
 import { CheckCircle2, FileText, Send } from 'lucide-react';
-import type { FormEvent } from 'react';
-import { useEffect, useMemo, useState } from 'react';
-import type { FormField } from '@/types/builder';
+import type { FormEvent, FormField } from '@/types/builder';
+import { useMemo } from 'react';
 
 const A4_WIDTH_PX = 794;
 const A4_HEIGHT_PX = 1123;

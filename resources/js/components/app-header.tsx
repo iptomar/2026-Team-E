@@ -4,7 +4,9 @@ import {
     ClipboardList,
     CopyPlus,
     DraftingCompass,
+    FileText,
     Folder,
+    GitBranch,
     Menu,
     Search,
 } from 'lucide-react';
@@ -40,7 +42,7 @@ import { UserMenuContent } from '@/components/user-menu-content';
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import { useInitials } from '@/hooks/use-initials';
 import { cn, toUrl } from '@/lib/utils';
-import { dashboard, builder } from '@/routes';
+import { dashboard, builder, workflow, formsList } from '@/routes';
 import type { BreadcrumbItem, NavItem } from '@/types';
 
 type Props = {
@@ -54,9 +56,19 @@ const mainNavItems: NavItem[] = [
         icon: DraftingCompass,
     },
     {
+        title: 'Workflows',
+        href: workflow(),
+        icon: GitBranch,
+    },
+    {
         title: 'Templates',
         href: dashboard(),
         icon: CopyPlus,
+    },
+    {
+        title: 'Formulários',
+        href: formsList(),
+        icon: FileText,
     },
     {
         title: 'Preencher',

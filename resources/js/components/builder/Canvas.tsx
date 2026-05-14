@@ -29,9 +29,12 @@ export function Canvas({
     }, [onCanvasReady]);
 
     useEffect(() => {
-        if (!showClearConfirm) return;
+        if (!showClearConfirm) {
+return;
+}
 
         const t = setTimeout(() => setShowClearConfirm(false), 3000);
+
         return () => clearTimeout(t);
     }, [showClearConfirm]);
 

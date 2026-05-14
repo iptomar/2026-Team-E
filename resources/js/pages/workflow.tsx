@@ -7,9 +7,9 @@ import ReactFlow, {
     applyNodeChanges 
 } from 'reactflow';
 import 'reactflow/dist/style.css';
+import { StepNode } from '@/components/workflow/StepNode'; // Importa o componente do nó personalizado
 import AppLayout from '@/layouts/app-layout'; // Ou o seu layout padrão
 import { Head } from '@inertiajs/react';
-import { StepNode } from '@/components/workflow/StepNode'; // Importa o componente do nó personalizado
 
 // Registra o tipo de nó personalizado
 const nodeTypes = {
@@ -148,6 +148,7 @@ const WorkflowEditor = () => {
                             <div className="space-y-1 max-h-60 overflow-y-auto border rounded p-2">
                                 {STATIC_LABELS.map(label => {
                                     const isSelected = selectedNode.data.labels?.some(l => l.id === label.id);
+
                                     return (
                                         <div 
                                             key={label.id}
