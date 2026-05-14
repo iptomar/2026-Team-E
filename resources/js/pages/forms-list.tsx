@@ -1,13 +1,4 @@
-import { Head, Link } from '@inertiajs/react';
-import { Button } from '@/components/ui/button';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-
+import { Head, Link, router } from '@inertiajs/react';
 import {
     Plus,
     MoreVertical,
@@ -20,15 +11,83 @@ import {
     LayoutGrid,
     ClipboardList,
 } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Button } from '@/components/ui/button';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
-interface CardProps {
+interface Template {
+    id: number;
     name: string;
-    description?: string;
-    icon?: React.ReactNode;
-    actions?: React.ReactNode;
+    structure: any[];
+    validation_sequence: any[];
+    allowed_roles: string[];
+    created_at: string;
+    creator?: {
+        name: string;
+    };
 }
 
-function Card({ name, description, icon, actions }: CardProps) {
+interface FormSubmission {
+    id: number;
+    form_template_id: number;
+    user_id: number;
+    submitted_data: any;
+    status: string;
+    created_at: string;
+    formTemplate?: Template;
+    user?: {
+        name: string;
+    };
+}
+
+interface PreviewData {
+    type: 'form' | 'template';
+    name: string;
+    data: any;
+}
+
+interface CardProps {
+    id: number;
+    name: string;
+    createdAt: string;
+    icon: React.ReactNode;
+    showFillButton?: boolean;
+    onDelete: () => void;
+    onDuplicate?: () => void;
+    onPreview: () => void;
+    onEdit?: () => void;
+    onFill?: () => void;
+}
+
+function Card({
+    name,
+    createdAt,
+    icon,
+    showFillButton,
+    onDelete,
+    onDuplicate,
+    onPreview,
+    onEdit,
+    onFill,
+}: CardProps) {
+    const formattedDate = new Date(createdAt).toLocaleDateString('pt-BR', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+    });
+
     return (
         <div className="group w-[280px] shrink-0 snap-start rounded-2xl border border-gray-200 bg-white p-4 transition-all duration-200 hover:-translate-y-1 hover:border-indigo-300 hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900">
             <div className="mb-3 flex items-start justify-between">
@@ -47,20 +106,24 @@ function Card({ name, description, icon, actions }: CardProps) {
                         align="end"
                         className="w-48 dark:border-neutral-800 dark:bg-neutral-900"
                     >
-                        <DropdownMenuItem className="gap-2">
+                        <DropdownMenuItem className="gap-2" onClick={onPreview}>
                             <Eye className="h-4 w-4" />
                             Preview
                         </DropdownMenuItem>
 
-                        <DropdownMenuItem className="gap-2">
-                            <Pencil className="h-4 w-4" />
-                            Editar
-                        </DropdownMenuItem>
+                        {onEdit && (
+                            <DropdownMenuItem className="gap-2" onClick={onEdit}>
+                                <Pencil className="h-4 w-4" />
+                                Editar
+                            </DropdownMenuItem>
+                        )}
 
-                        <DropdownMenuItem className="gap-2">
-                            <Copy className="h-4 w-4" />
-                            Duplicar
-                        </DropdownMenuItem>
+                        {onDuplicate && (
+                            <DropdownMenuItem className="gap-2" onClick={onDuplicate}>
+                                <Copy className="h-4 w-4" />
+                                Duplicar
+                            </DropdownMenuItem>
+                        )}
 
                         <DropdownMenuItem className="gap-2">
                             <Pin className="h-4 w-4" />
@@ -69,7 +132,10 @@ function Card({ name, description, icon, actions }: CardProps) {
 
                         <DropdownMenuSeparator />
 
-                        <DropdownMenuItem className="gap-2 text-red-600 focus:text-red-600">
+                        <DropdownMenuItem
+                            className="gap-2 text-red-600 focus:text-red-600"
+                            onClick={onDelete}
+                        >
                             <Trash2 className="h-4 w-4" />
                             Eliminar
                         </DropdownMenuItem>
@@ -82,19 +148,114 @@ function Card({ name, description, icon, actions }: CardProps) {
                     {name}
                 </h3>
 
-                {description && (
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                        {description}
-                    </p>
-                )}
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                    {formattedDate}
+                </p>
             </div>
 
-            {actions && (
+            {showFillButton && (
                 <div className="mt-4 border-t border-gray-100 pt-4 dark:border-neutral-800">
-                    {actions}
+                    <Button
+                        size="sm"
+                        className="w-full gap-2 bg-indigo-600 text-xs text-white hover:bg-indigo-700"
+                        onClick={onFill}
+                    >
+                        <ClipboardList className="h-4 w-4" />
+                        Preencher
+                    </Button>
                 </div>
             )}
         </div>
+    );
+}
+
+function PreviewModal({
+    open,
+    onClose,
+    data,
+}: {
+    open: boolean;
+    onClose: () => void;
+    data: PreviewData | null;
+}) {
+    if (!data) {
+        return null;
+    }
+
+    const isForm = data.type === 'form';
+    const title = isForm ? 'Preview do Formulário' : 'Preview do Template';
+
+    return (
+        <Dialog open={open} onOpenChange={onClose}>
+            <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                        {isForm ? (
+                            <FileText className="h-5 w-5 text-indigo-600" />
+                        ) : (
+                            <LayoutGrid className="h-5 w-5 text-indigo-600" />
+                        )}
+                        {title}: {data.name}
+                    </DialogTitle>
+                </DialogHeader>
+
+                <div className="mt-4 space-y-4">
+                    <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-neutral-700 dark:bg-neutral-800">
+                        <h4 className="mb-3 text-sm font-medium text-gray-900 dark:text-white">
+                            Estrutura do Formulário
+                        </h4>
+
+                        {data.data && data.data.length > 0 ? (
+                            <div className="space-y-2">
+                                {data.data.map((field: any, index: number) => (
+                                    <div
+                                        key={index}
+                                        className="flex items-center gap-2 rounded-md border border-gray-200 bg-white p-3 dark:border-neutral-700 dark:bg-neutral-900"
+                                    >
+                                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-indigo-100 text-xs font-medium text-indigo-600 dark:bg-indigo-900 dark:text-indigo-300">
+                                            {index + 1}
+                                        </span>
+                                        <div className="flex-1">
+                                            <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                                {field.label || field.name || `Campo ${index + 1}`}
+                                            </p>
+                                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                                                Tipo: {field.type || 'text'}
+                                                {field.required && ' • Obrigatório'}
+                                            </p>
+                                        </div>
+                                        <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600 dark:bg-neutral-700 dark:text-gray-300">
+                                            {field.type || 'text'}
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                                Sem campos definidos.
+                            </p>
+                        )}
+                    </div>
+
+                    {isForm && data.data?.submitted_data && (
+                        <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-neutral-700 dark:bg-neutral-800">
+                            <h4 className="mb-3 text-sm font-medium text-gray-900 dark:text-white">
+                                Dados Submetidos
+                            </h4>
+                            <pre className="text-xs text-gray-600 dark:text-gray-400 overflow-x-auto">
+                                {JSON.stringify(data.data.submitted_data, null, 2)}
+                            </pre>
+                        </div>
+                    )}
+                </div>
+
+                <div className="mt-6 flex justify-end">
+                    <Button variant="outline" onClick={onClose}>
+                        Fechar
+                    </Button>
+                </div>
+            </DialogContent>
+        </Dialog>
     );
 }
 
@@ -136,39 +297,204 @@ function EmptyState({
     );
 }
 
+function LoadingState() {
+    return (
+        <div className="flex h-64 items-center justify-center">
+            <div className="text-gray-500 dark:text-gray-400">
+                Carregando...
+            </div>
+        </div>
+    );
+}
+
+function ErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
+    return (
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-red-200 bg-red-50/50 px-6 py-8 text-center dark:border-red-900/30 dark:bg-red-900/10">
+            <p className="mb-3 text-sm font-medium text-red-600 dark:text-red-400">
+                {message}
+            </p>
+            <Button size="sm" variant="outline" onClick={onRetry}>
+                Tentar novamente
+            </Button>
+        </div>
+    );
+}
+
 export default function FormsList() {
-    const formsEmpty = false;
-    const templatesEmpty = false;
+    const [forms, setForms] = useState<FormSubmission[]>([]);
+    const [templates, setTemplates] = useState<Template[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [previewData, setPreviewData] = useState<PreviewData | null>(null);
+    const [previewOpen, setPreviewOpen] = useState(false);
 
-    const forms = [
-        {
-            id: '1',
-            name: 'Formulário de Avaliação',
-            description: 'Avaliação de desempenho de funcionários',
-        },
-        {
-            id: '2',
-            name: 'Pedido de Férias',
-            description: 'Formulário para solicitar férias',
-        },
-    ];
+    const fetchForms = useCallback(async () => {
+        try {
+            const response = await fetch('/api/submissions', {
+                headers: {
+                    Accept: 'application/json',
+                },
+                credentials: 'same-origin',
+            });
 
-    const templates = [
-        {
-            id: '1',
-            name: 'Template Básico',
-            description: 'Template com campos essenciais',
-        },
-        {
-            id: '2',
-            name: 'Template Completo',
-            description: 'Template abrangente',
-        },
-    ];
+            if (!response.ok) {
+                throw new Error('Falha ao carregar formulários');
+            }
+
+            const data = await response.json();
+            const sorted = data.sort(
+                (a: FormSubmission, b: FormSubmission) =>
+                    new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+            );
+            setForms(sorted);
+        } catch (err) {
+            console.error('Error fetching forms:', err);
+        }
+    }, []);
+
+    const fetchTemplates = useCallback(async () => {
+        try {
+            const response = await fetch('/api/templates', {
+                headers: {
+                    Accept: 'application/json',
+                },
+                credentials: 'same-origin',
+            });
+
+            if (!response.ok) {
+                throw new Error('Falha ao carregar templates');
+            }
+
+            const data = await response.json();
+            const sorted = data.sort(
+                (a: Template, b: Template) =>
+                    new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+            );
+            setTemplates(sorted);
+        } catch (err) {
+            console.error('Error fetching templates:', err);
+        }
+    }, []);
+
+    const loadData = useCallback(async () => {
+        setLoading(true);
+        setError(null);
+
+        try {
+            await Promise.all([fetchForms(), fetchTemplates()]);
+        } catch {
+            setError('Erro ao carregar dados');
+        } finally {
+            setLoading(false);
+        }
+    }, [fetchForms, fetchTemplates]);
+
+    useEffect(() => {
+        loadData();
+    }, [loadData]);
+
+    const handleDeleteForm = async (id: number) => {
+        try {
+            const response = await fetch(`/api/submissions/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    Accept: 'application/json',
+                },
+                credentials: 'same-origin',
+            });
+
+            if (response.ok) {
+                setForms((prev) => prev.filter((f) => f.id !== id));
+            }
+        } catch (err) {
+            console.error('Error deleting form:', err);
+        }
+    };
+
+    const handleDeleteTemplate = async (id: number) => {
+        try {
+            const response = await fetch(`/api/templates/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    Accept: 'application/json',
+                },
+                credentials: 'same-origin',
+            });
+
+            if (response.ok) {
+                setTemplates((prev) => prev.filter((t) => t.id !== id));
+            }
+        } catch (err) {
+            console.error('Error deleting template:', err);
+        }
+    };
+
+    const handleDuplicateTemplate = async (template: Template) => {
+        try {
+            const response = await fetch('/api/templates', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json',
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({
+                    name: `Cópia de ${template.name}`,
+                    structure: template.structure,
+                    validation_sequence: template.validation_sequence,
+                    allowed_roles: template.allowed_roles,
+                }),
+            });
+
+            if (response.ok) {
+                fetchTemplates();
+            }
+        } catch (err) {
+            console.error('Error duplicating template:', err);
+        }
+    };
+
+    const handlePreviewForm = (form: FormSubmission) => {
+        setPreviewData({
+            type: 'form',
+            name: form.formTemplate?.name || 'Formulário',
+            data: {
+                structure: form.formTemplate?.structure || [],
+                submitted_data: form.submitted_data,
+            },
+        });
+        setPreviewOpen(true);
+    };
+
+    const handlePreviewTemplate = (template: Template) => {
+        setPreviewData({
+            type: 'template',
+            name: template.name,
+            data: template.structure || [],
+        });
+        setPreviewOpen(true);
+    };
+
+    const handleEditTemplate = (id: number) => {
+        router.visit(`/edit?id=${id}`);
+    };
+
+    const handleFillForm = (templateId: number) => {
+        router.visit(`/form?templateId=${templateId}`);
+    };
+
+    const formsEmpty = forms.length === 0;
+    const templatesEmpty = templates.length === 0;
 
     return (
         <>
             <Head title="Formulários e Templates" />
+
+            <PreviewModal
+                open={previewOpen}
+                onClose={() => setPreviewOpen(false)}
+                data={previewData}
+            />
 
             <div className="flex h-full flex-1 flex-col bg-gray-100 text-gray-900 dark:bg-neutral-950 dark:text-white">
                 {/* Header */}
@@ -193,80 +519,103 @@ export default function FormsList() {
 
                 {/* Content */}
                 <div className="flex-1 overflow-y-auto p-6">
-                    <div className="space-y-10">
-                        {/* Forms */}
-                        <section>
-                            <div className="mb-5 flex items-center justify-between">
-                                <div>
+                    {loading ? (
+                        <LoadingState />
+                    ) : error ? (
+                        <ErrorState message={error} onRetry={loadData} />
+                    ) : (
+                        <div className="space-y-10">
+                            {/* Forms */}
+                            <section>
+                                <div className="mb-5 flex items-center justify-between">
+                                    <div>
+                                        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                                            Formulários
+                                        </h2>
+
+                                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                                            Formulários criados recentemente
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {formsEmpty ? (
+                                    <EmptyState
+                                        title="Sem formulários ainda"
+                                        description="Clique em 'Criar formulário' para começar"
+                                    />
+                                ) : (
+                                    <div className="flex snap-x gap-4 overflow-x-auto pb-2">
+                                        {forms.map((form) => (
+                                            <Card
+                                                key={form.id}
+                                                id={form.id}
+                                                name={form.formTemplate?.name || 'Formulário'}
+                                                createdAt={form.created_at}
+                                                icon={<FileText className="h-5 w-5" />}
+                                                showFillButton
+                                                onDelete={() =>
+                                                    handleDeleteForm(form.id)
+                                                }
+                                                onPreview={() =>
+                                                    handlePreviewForm(form)
+                                                }
+                                                onFill={() =>
+                                                    handleFillForm(
+                                                        form.form_template_id
+                                                    )
+                                                }
+                                            />
+                                        ))}
+                                    </div>
+                                )}
+                            </section>
+
+                            {/* Templates */}
+                            <section>
+                                <div className="mb-5">
                                     <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                                        Formulários
+                                        Templates
                                     </h2>
 
                                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                                        Formulários criados recentemente
+                                        Templates reutilizáveis para novos formulários
                                     </p>
                                 </div>
-                            </div>
 
-                            {formsEmpty ? (
-                                <EmptyState
-                                    title="Sem formulários ainda"
-                                    description="Clique em 'Criar formulário' para começar"
-                                />
-                            ) : (
-                                <div className="flex snap-x gap-4 overflow-x-auto pb-2">
-                                    {forms.map((form) => (
-                                        <Card
-                                            key={form.id}
-                                            name={form.name}
-                                            description={form.description}
-                                            icon={<FileText className="h-5 w-5" />}
-                                            actions={
-                                                <Button
-                                                    size="sm"
-                                                    className="w-full gap-2 bg-indigo-600 text-xs text-white hover:bg-indigo-700"
-                                                >
-                                                    <ClipboardList className="h-4 w-4" />
-                                                    Preencher
-                                                </Button>
-                                            }
-                                        />
-                                    ))}
-                                </div>
-                            )}
-                        </section>
-
-                        {/* Templates */}
-                        <section>
-                            <div className="mb-5">
-                                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                                    Templates
-                                </h2>
-
-                                <p className="text-sm text-gray-500 dark:text-gray-400">
-                                    Templates reutilizáveis para novos formulários
-                                </p>
-                            </div>
-
-                            {templatesEmpty ? (
-                                <EmptyState
-                                    title="Sem templates ainda"
-                                    description="Crie templates no builder para reutilizar"
-                                />
-                            ) : (
-                                <div className="flex snap-x gap-4 overflow-x-auto pb-2">
-                                    {templates.map((template) => (
-                                        <Card
-                                            key={template.id}
-                                            name={template.name}
-                                            description={template.description}
-                                            icon={<LayoutGrid className="h-5 w-5" />}
-                                        />
-                                    ))}
-                                </div>
-                            )}
-                        </section>
-                    </div>
+                                {templatesEmpty ? (
+                                    <EmptyState
+                                        title="Sem templates ainda"
+                                        description="Crie templates no builder para reutilizar"
+                                    />
+                                ) : (
+                                    <div className="flex snap-x gap-4 overflow-x-auto pb-2">
+                                        {templates.map((template) => (
+                                            <Card
+                                                key={template.id}
+                                                id={template.id}
+                                                name={template.name}
+                                                createdAt={template.created_at}
+                                                icon={<LayoutGrid className="h-5 w-5" />}
+                                                onDelete={() =>
+                                                    handleDeleteTemplate(template.id)
+                                                }
+                                                onDuplicate={() =>
+                                                    handleDuplicateTemplate(template)
+                                                }
+                                                onPreview={() =>
+                                                    handlePreviewTemplate(template)
+                                                }
+                                                onEdit={() =>
+                                                    handleEditTemplate(template.id)
+                                                }
+                                            />
+                                        ))}
+                                    </div>
+                                )}
+                            </section>
+                        </div>
+                    )}
                 </div>
             </div>
         </>
