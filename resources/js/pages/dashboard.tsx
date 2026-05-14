@@ -151,7 +151,7 @@ export default function Dashboard() {
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                             <button
                                                 type="button"
-                                                onClick={() => router.visit('/edit')}
+                                                onClick={() => router.visit(`/edit?id=${template.id}`)}
                                                 className="mr-2 rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700 transition-colors"
                                             >
                                                 Editar
