@@ -577,7 +577,7 @@ export default function FormsList() {
                             <section>
                                 <div className="mb-5">
                                     <h2 className="text-lg font-semibold text-gray-900">
-                                        Templates
+                                        Histórico
                                     </h2>
 
                                     <p className="text-sm text-gray-500">
