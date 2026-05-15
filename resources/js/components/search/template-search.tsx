@@ -20,7 +20,7 @@ const SearchTemplates: React.FC<SearchTemplatesProps> = ({ templates, onFilter }
     const value = e.target.value;
     setQuery(value);
 
-    // Filtra a lista original
+    
     const filtered = templates.filter((t) =>
       t.nome.toLowerCase().includes(value.toLowerCase())
     );
@@ -33,7 +33,7 @@ const SearchTemplates: React.FC<SearchTemplatesProps> = ({ templates, onFilter }
     
     if (nextState === false) {
       setQuery("");
-      onFilter(templates); // Reseta a lista ao fechar
+      onFilter(templates); 
     }
   };
 
