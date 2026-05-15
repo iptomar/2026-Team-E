@@ -136,12 +136,14 @@ return;
         if (!formName?.trim()) {
             setSaveStatus('error');
             setSaveMessage('Informe um nome de template antes de gravar.');
+
             return;
         }
 
         if (fields.length === 0) {
             setSaveStatus('error');
             setSaveMessage('Adicione pelo menos um campo antes de gravar.');
+
             return;
         }
 
@@ -172,6 +174,7 @@ return;
                 setSaveMessage(
                     error?.message || 'Falha ao gravar o template.',
                 );
+
                 return;
             }
 
