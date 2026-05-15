@@ -198,7 +198,7 @@ const WorkflowEditorInner = () => {
                     onConnect={() => {}}
                     connectOnClick={false}
                     fitView
-                    fitViewOptions={{ padding: 0.4 }}
+                    fitViewOptions={{ padding: 2 }}
                 >
                     <Background />
                     <Controls showInteractive={false} />
