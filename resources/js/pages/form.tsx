@@ -1,8 +1,8 @@
-import { Head } from '@inertiajs/react';
-import React, { useState, useEffect } from 'react';
+import { Head, router } from '@inertiajs/react';
 import { CheckCircle2, FileText, Send } from 'lucide-react';
-import type { FormEvent, FormField } from '@/types/builder';
+import React, { useState, useEffect } from 'react';
 import { useMemo } from 'react';
+import type { FormEvent, FormField } from '@/types/builder';
 
 const A4_WIDTH_PX = 794;
 const A4_HEIGHT_PX = 1123;
@@ -264,6 +264,7 @@ export default function Form() {
     const [values, setValues] = useState<FormValues>({});
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [hideSidebar, setHideSidebar] = useState(false);
     const [status, setStatus] = useState<SubmitState>({
         type: 'idle',
         message: 'Escolhe um template para preencher.',
@@ -282,25 +283,58 @@ export default function Form() {
     );
 
     useEffect(() => {
+        if (typeof window === 'undefined') {
+            return;
+        }
+
+        const params = new URLSearchParams(window.location.search);
+        const templateIdParam = params.get('templateId');
+
+        if (templateIdParam) {
+            setHideSidebar(true);
+        }
+    }, []);
+
+    useEffect(() => {
         let isMounted = true;
 
         async function loadTemplates() {
             setIsLoading(true);
 
             try {
-                const response = await fetch('/api/templates', {
-                    headers: { Accept: 'application/json' },
-                    credentials: 'same-origin',
-                });
+                const params = new URLSearchParams(window.location.search);
+                const templateIdParam = params.get('templateId');
 
-                if (!response.ok) {
-                    throw new Error('Nao foi possivel carregar os templates.');
+                let response;
+                let templateList: FormTemplate[] = [];
+
+                if (templateIdParam) {
+                    response = await fetch(`/api/templates/${templateIdParam}`, {
+                        headers: { Accept: 'application/json' },
+                        credentials: 'same-origin',
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Nao foi possivel carregar o template.');
+                    }
+
+                    const template = await response.json();
+                    templateList = template ? [template] : [];
+                } else {
+                    response = await fetch('/api/templates', {
+                        headers: { Accept: 'application/json' },
+                        credentials: 'same-origin',
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Nao foi possivel carregar os templates.');
+                    }
+
+                    const payload = await response.json();
+                    templateList = Array.isArray(payload)
+                        ? payload
+                        : (payload.data ?? []);
                 }
-
-                const payload = await response.json();
-                const templateList = Array.isArray(payload)
-                    ? payload
-                    : (payload.data ?? []);
 
                 if (!isMounted) {
                     return;
@@ -419,71 +453,83 @@ export default function Form() {
         <>
             <Head title="Preencher Formularios" />
             <div className="flex h-full min-h-0 bg-gray-100 text-gray-900">
-                <aside className="w-80 shrink-0 overflow-y-auto border-r border-gray-200 bg-white">
-                    <div className="border-b border-gray-200 px-5 py-4">
-                        <h1 className="text-lg font-semibold">
-                            Preencher formularios
-                        </h1>
-                        <p className="mt-1 text-sm text-gray-500">
-                            Templates criados no canvas
-                        </p>
-                    </div>
+                {!hideSidebar && (
+                    <aside className="w-80 shrink-0 overflow-y-auto border-r border-gray-200 bg-white">
+                        <div className="border-b border-gray-200 px-5 py-4">
+                            <h1 className="text-lg font-semibold">
+                                Preencher formularios
+                            </h1>
+                            <p className="mt-1 text-sm text-gray-500">
+                                Templates criados no canvas
+                            </p>
+                        </div>
 
-                    <div className="space-y-2 p-3">
-                        {isLoading && (
-                            <div className="rounded-lg border border-gray-200 px-3 py-3 text-sm text-gray-500">
-                                A carregar templates...
-                            </div>
-                        )}
+                        <div className="space-y-2 p-3">
+                            {isLoading && (
+                                <div className="rounded-lg border border-gray-200 px-3 py-3 text-sm text-gray-500">
+                                    A carregar templates...
+                                </div>
+                            )}
 
-                        {!isLoading &&
-                            templates.map((template) => {
-                                const templateFields =
-                                    getTemplateFields(template);
-                                const isSelected =
-                                    template.id === selectedTemplateId;
+                            {!isLoading &&
+                                templates.map((template) => {
+                                    const templateFields =
+                                        getTemplateFields(template);
+                                    const isSelected =
+                                        template.id === selectedTemplateId;
 
-                                return (
-                                    <button
-                                        key={template.id}
-                                        type="button"
-                                        onClick={() =>
-                                            handleTemplateSelect(template.id)
-                                        }
-                                        className={`w-full rounded-lg border px-3 py-3 text-left transition ${
-                                            isSelected
-                                                ? 'border-indigo-300 bg-indigo-50 text-indigo-950'
-                                                : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
-                                        }`}
-                                    >
-                                        <div className="flex items-start gap-3">
-                                            <FileText className="mt-0.5 h-4 w-4 shrink-0" />
-                                            <div className="min-w-0">
-                                                <div className="truncate text-sm font-semibold">
-                                                    {template.name}
-                                                </div>
-                                                <div className="mt-1 text-xs text-gray-500">
-                                                    {templateFields.length}{' '}
-                                                    elemento
-                                                    {templateFields.length === 1
-                                                        ? ''
-                                                        : 's'}
+                                    return (
+                                        <button
+                                            key={template.id}
+                                            type="button"
+                                            onClick={() =>
+                                                handleTemplateSelect(template.id)
+                                            }
+                                            className={`w-full rounded-lg border px-3 py-3 text-left transition ${
+                                                isSelected
+                                                    ? 'border-indigo-300 bg-indigo-50 text-indigo-950'
+                                                    : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
+                                            }`}
+                                        >
+                                            <div className="flex items-start gap-3">
+                                                <FileText className="mt-0.5 h-4 w-4 shrink-0" />
+                                                <div className="min-w-0">
+                                                    <div className="truncate text-sm font-semibold">
+                                                        {template.name}
+                                                    </div>
+                                                    <div className="mt-1 text-xs text-gray-500">
+                                                        {templateFields.length}{' '}
+                                                        elemento
+                                                        {templateFields.length === 1
+                                                            ? ''
+                                                            : 's'}
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    </button>
-                                );
-                            })}
+                                        </button>
+                                    );
+                                })}
 
-                        {!isLoading && templates.length === 0 && (
-                            <div className="rounded-lg border border-dashed border-gray-300 px-3 py-6 text-center text-sm text-gray-500">
-                                Guarda um template no canvas para aparecer aqui.
-                            </div>
-                        )}
+                            {!isLoading && templates.length === 0 && (
+                                <div className="rounded-lg border border-dashed border-gray-300 px-3 py-6 text-center text-sm text-gray-500">
+                                    Guarda um template no canvas para aparecer aqui.
+                                </div>
+                            )}
+                        </div>
+                    </aside>
+                )}
+
+                <main className={`min-w-0 flex-1 overflow-auto ${hideSidebar ? 'mx-auto w-full max-w-4xl px-6' : ''}`}>
+                    <div className="px-8 pt-4">
+                        <button
+                            type="button"
+                            onClick={() => router.visit('/forms-list')}
+                            className="inline-flex items-center gap-1.5 text-sm text-gray-500 transition hover:text-gray-900"
+                        >
+                            ← Voltar para lista
+                        </button>
                     </div>
-                </aside>
 
-                <main className="min-w-0 flex-1 overflow-auto">
                     <form
                         onSubmit={handleSubmit}
                         className="mx-auto flex min-h-full w-max flex-col gap-4 px-8 py-6"

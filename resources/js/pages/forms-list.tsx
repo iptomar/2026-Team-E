@@ -59,7 +59,6 @@ interface PreviewData {
 }
 
 interface CardProps {
-    id: number;
     name: string;
     createdAt: string;
     icon: React.ReactNode;
@@ -242,7 +241,7 @@ function PreviewModal({
                             <h4 className="mb-3 text-sm font-medium text-gray-900">
                                 Dados Submetidos
                             </h4>
-                            <pre className="text-xs text-gray-600 text-gray-500 overflow-x-auto">
+                            <pre className="text-xs text-gray-500 overflow-x-auto">
                                 {JSON.stringify(data.data.submitted_data, null, 2)}
                             </pre>
                         </div>
@@ -321,16 +320,16 @@ function ErrorState({ message, onRetry }: { message: string; onRetry: () => void
 }
 
 export default function FormsList() {
-    const [forms, setForms] = useState<FormSubmission[]>([]);
-    const [templates, setTemplates] = useState<Template[]>([]);
+    const [formularios, setFormularios] = useState<Template[]>([]);
+    const [templates, setTemplates] = useState<FormSubmission[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [previewData, setPreviewData] = useState<PreviewData | null>(null);
     const [previewOpen, setPreviewOpen] = useState(false);
 
-    const fetchForms = useCallback(async () => {
+    const fetchFormularios = useCallback(async () => {
         try {
-            const response = await fetch('/api/submissions', {
+            const response = await fetch('/api/templates', {
                 headers: {
                     Accept: 'application/json',
                 },
@@ -343,10 +342,10 @@ export default function FormsList() {
 
             const data = await response.json();
             const sorted = data.sort(
-                (a: FormSubmission, b: FormSubmission) =>
+                (a: Template, b: Template) =>
                     new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
             );
-            setForms(sorted);
+            setFormularios(sorted);
         } catch (err) {
             console.error('Error fetching forms:', err);
         }
@@ -354,7 +353,7 @@ export default function FormsList() {
 
     const fetchTemplates = useCallback(async () => {
         try {
-            const response = await fetch('/api/templates', {
+            const response = await fetch('/api/submissions', {
                 headers: {
                     Accept: 'application/json',
                 },
@@ -367,7 +366,7 @@ export default function FormsList() {
 
             const data = await response.json();
             const sorted = data.sort(
-                (a: Template, b: Template) =>
+                (a: FormSubmission, b: FormSubmission) =>
                     new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
             );
             setTemplates(sorted);
@@ -381,21 +380,21 @@ export default function FormsList() {
         setError(null);
 
         try {
-            await Promise.all([fetchForms(), fetchTemplates()]);
+            await Promise.all([fetchFormularios(), fetchTemplates()]);
         } catch {
             setError('Erro ao carregar dados');
         } finally {
             setLoading(false);
         }
-    }, [fetchForms, fetchTemplates]);
+    }, [fetchFormularios, fetchTemplates]);
 
     useEffect(() => {
         loadData();
     }, [loadData]);
 
-    const handleDeleteForm = async (id: number) => {
+    const handleDeleteFormulario = async (id: number) => {
         try {
-            const response = await fetch(`/api/submissions/${id}`, {
+            const response = await fetch(`/api/templates/${id}`, {
                 method: 'DELETE',
                 headers: {
                     Accept: 'application/json',
@@ -404,7 +403,7 @@ export default function FormsList() {
             });
 
             if (response.ok) {
-                setForms((prev) => prev.filter((f) => f.id !== id));
+                setFormularios((prev) => prev.filter((f) => f.id !== id));
             }
         } catch (err) {
             console.error('Error deleting form:', err);
@@ -413,7 +412,7 @@ export default function FormsList() {
 
     const handleDeleteTemplate = async (id: number) => {
         try {
-            const response = await fetch(`/api/templates/${id}`, {
+            const response = await fetch(`/api/submissions/${id}`, {
                 method: 'DELETE',
                 headers: {
                     Accept: 'application/json',
@@ -447,30 +446,30 @@ export default function FormsList() {
             });
 
             if (response.ok) {
-                fetchTemplates();
+                fetchFormularios();
             }
         } catch (err) {
             console.error('Error duplicating template:', err);
         }
     };
 
-    const handlePreviewForm = (form: FormSubmission) => {
+    const handlePreviewFormulario = (template: Template) => {
         setPreviewData({
             type: 'form',
-            name: form.formTemplate?.name || 'Formulário',
-            data: {
-                structure: form.formTemplate?.structure || [],
-                submitted_data: form.submitted_data,
-            },
+            name: template.name,
+            data: template.structure || [],
         });
         setPreviewOpen(true);
     };
 
-    const handlePreviewTemplate = (template: Template) => {
+    const handlePreviewTemplate = (submission: FormSubmission) => {
         setPreviewData({
             type: 'template',
-            name: template.name,
-            data: template.structure || [],
+            name: submission.formTemplate?.name || `Submissão #${submission.id}`,
+            data: {
+                structure: submission.formTemplate?.structure || [],
+                submitted_data: submission.submitted_data,
+            },
         });
         setPreviewOpen(true);
     };
@@ -480,10 +479,10 @@ export default function FormsList() {
     };
 
     const handleFillForm = (templateId: number) => {
-        router.visit(`/form?templateId=${templateId}`);
+        router.visit(`/preencher-formularios?templateId=${templateId}`);
     };
 
-    const formsEmpty = forms.length === 0;
+    const formulariosEmpty = formularios.length === 0;
     const templatesEmpty = templates.length === 0;
 
     return (
@@ -525,45 +524,48 @@ export default function FormsList() {
                         <ErrorState message={error} onRetry={loadData} />
                     ) : (
                         <div className="space-y-10">
-                            {/* Forms */}
+                            {/* Formulários - from /api/templates */}
                             <section>
                                 <div className="mb-5 flex items-center justify-between">
                                     <div>
-                                        <h2 className="text-lg font-semibold text-gray-900 text-gray-900">
+                                        <h2 className="text-lg font-semibold text-gray-900">
                                             Formulários
                                         </h2>
 
-                                        <p className="text-sm text-gray-500 text-gray-500">
-                                            Formulários criados recentemente
+                                        <p className="text-sm text-gray-500">
+                                            Formulários disponíveis para preencher
                                         </p>
                                     </div>
                                 </div>
 
-                                {formsEmpty ? (
+                                {formulariosEmpty ? (
                                     <EmptyState
                                         title="Sem formulários ainda"
                                         description="Clique em 'Criar formulário' para começar"
                                     />
                                 ) : (
                                     <div className="flex snap-x gap-4 overflow-x-auto pb-2">
-                                        {forms.map((form) => (
+                                        {formularios.map((template) => (
                                             <Card
-                                                key={form.id}
-                                                id={form.id}
-                                                name={form.formTemplate?.name || 'Formulário'}
-                                                createdAt={form.created_at}
-                                                icon={<FileText className="h-5 w-5" />}
+                                                key={template.id}
+                                                name={template.name}
+                                                createdAt={template.created_at}
+                                                icon={<LayoutGrid className="h-5 w-5" />}
                                                 showFillButton
                                                 onDelete={() =>
-                                                    handleDeleteForm(form.id)
+                                                    handleDeleteFormulario(template.id)
                                                 }
                                                 onPreview={() =>
-                                                    handlePreviewForm(form)
+                                                    handlePreviewFormulario(template)
                                                 }
                                                 onFill={() =>
-                                                    handleFillForm(
-                                                        form.form_template_id
-                                                    )
+                                                    handleFillForm(template.id)
+                                                }
+                                                onEdit={() =>
+                                                    handleEditTemplate(template.id)
+                                                }
+                                                onDuplicate={() =>
+                                                    handleDuplicateTemplate(template)
                                                 }
                                             />
                                         ))}
@@ -571,15 +573,15 @@ export default function FormsList() {
                                 )}
                             </section>
 
-                            {/* Templates */}
+                            {/* Templates - from /api/submissions */}
                             <section>
                                 <div className="mb-5">
-                                    <h2 className="text-lg font-semibold text-gray-900 text-gray-900">
-                                        Templates
+                                    <h2 className="text-lg font-semibold text-gray-900">
+                                        Histórico
                                     </h2>
 
-                                    <p className="text-sm text-gray-500 text-gray-500">
-                                        Templates reutilizáveis para novos formulários
+                                    <p className="text-sm text-gray-500">
+                                        Histórico de submissões
                                     </p>
                                 </div>
 
@@ -590,24 +592,17 @@ export default function FormsList() {
                                     />
                                 ) : (
                                     <div className="flex snap-x gap-4 overflow-x-auto pb-2">
-                                        {templates.map((template) => (
+                                        {templates.map((submission) => (
                                             <Card
-                                                key={template.id}
-                                                id={template.id}
-                                                name={template.name}
-                                                createdAt={template.created_at}
-                                                icon={<LayoutGrid className="h-5 w-5" />}
+                                                key={submission.id}
+                                                name={submission.formTemplate?.name || `Submissão #${submission.id}`}
+                                                createdAt={submission.created_at}
+                                                icon={<FileText className="h-5 w-5" />}
                                                 onDelete={() =>
-                                                    handleDeleteTemplate(template.id)
-                                                }
-                                                onDuplicate={() =>
-                                                    handleDuplicateTemplate(template)
+                                                    handleDeleteTemplate(submission.id)
                                                 }
                                                 onPreview={() =>
-                                                    handlePreviewTemplate(template)
-                                                }
-                                                onEdit={() =>
-                                                    handleEditTemplate(template.id)
+                                                    handlePreviewTemplate(submission)
                                                 }
                                             />
                                         ))}
