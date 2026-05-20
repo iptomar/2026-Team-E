@@ -5,6 +5,9 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\FormController;
 use App\Http\Controllers\Api\FormSubmissionController;
 use App\Http\Controllers\Api\LabelController;
+use App\Http\Controllers\Api\DepartmentController;
+use App\Http\Controllers\Api\RoleController;
+use App\Http\Controllers\Api\UserManagementController;
 
 
 Route::get('/user', function (Request $request) {
@@ -52,3 +55,35 @@ Route::post('/templates/{templateId}/workflow', [FormController::class, 'syncWor
 Route::get('/templates/{templateId}/workflow', [FormController::class, 'getWorkflow']);
 
 
+// ===== ROTAS DE GESTÃO DE DEPARTAMENTOS =====
+Route::get('/departments', [DepartmentController::class, 'index']);
+Route::get('/departments/{id}', [DepartmentController::class, 'show']);
+Route::post('/departments', [DepartmentController::class, 'store']);
+Route::put('/departments/{id}', [DepartmentController::class, 'update']);
+Route::delete('/departments/{id}', [DepartmentController::class, 'destroy']);
+
+
+// ===== ROTAS DE GESTÃO DE ROLES/LABELS/GRUPOS =====
+Route::get('/roles', [RoleController::class, 'index']);
+Route::get('/roles/{id}', [RoleController::class, 'show']);
+Route::post('/roles', [RoleController::class, 'store']);
+Route::put('/roles/{id}', [RoleController::class, 'update']);
+Route::delete('/roles/{id}', [RoleController::class, 'destroy']);
+
+// Adicionar/Remover utilizadores de roles
+Route::post('/roles/{id}/users', [RoleController::class, 'addUser']);
+Route::delete('/roles/{roleId}/users/{userId}', [RoleController::class, 'removeUser']);
+
+
+// ===== ROTAS DE GESTÃO DE UTILIZADORES =====
+Route::get('/users-management', [UserManagementController::class, 'index']);
+Route::get('/users-management/{id}', [UserManagementController::class, 'show']);
+Route::put('/users-management/{id}', [UserManagementController::class, 'update']);
+
+// Adicionar/Remover labels de utilizadores
+Route::post('/users-management/{id}/labels', [UserManagementController::class, 'addLabel']);
+Route::delete('/users-management/{userId}/labels/{labelId}', [UserManagementController::class, 'removeLabel']);
+
+// Filtros
+Route::get('/users-management/department/{departmentId}', [UserManagementController::class, 'byDepartment']);
+Route::get('/users-management/label/{labelId}', [UserManagementController::class, 'byLabel']);
