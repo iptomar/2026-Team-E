@@ -33,7 +33,7 @@ const DEFAULT_FIELD_OFFSETS: Record<
 };
 
 export function BuilderContent() {
-    const { addField, fields, formName, setFormName } = useFormStore();
+    const { addField, fields, formName, setFormName, resetStore } = useFormStore();
     const [activeDragData, setActiveDragData] = useState<ActiveDragData | null>(
         null,
     );
@@ -132,6 +132,21 @@ return;
         canvasRef.current = el;
     }, []);
 
+    const handleNewTemplate = useCallback(() => {
+        if (fields.length > 0) {
+            const confirmed = window.confirm(
+                'Tem a certeza que quer criar um novo template? As mudanças não gravadas serão perdidas.'
+            );
+            if (!confirmed) return;
+        }
+
+        // Limpar localStorage e resetar estado
+        localStorage.removeItem('form-builder-storage');
+        resetStore();
+        setSaveStatus('idle');
+        setSaveMessage('');
+    }, [fields.length, resetStore]);
+
     const handleSaveTemplate = useCallback(async () => {
         if (!formName?.trim()) {
             setSaveStatus('error');
@@ -153,7 +168,7 @@ return;
         const payload = {
             name: formName,
             structure: fields,
-            validation_sequence: fields.map((field) => field.id),
+            validation_sequence: [], // Vazio por enquanto, será preenchido no workflow
             allowed_roles: ['admin'],
         };
 
@@ -183,6 +198,8 @@ return;
             setSaveStatus('success');
             setSaveMessage('Template gravado com sucesso.');
             if (templateId) {
+                // Limpar localStorage antes de ir para workflow
+                localStorage.removeItem('form-builder-storage');
                 router.visit(`/workflow?templateId=${templateId}`);
             }
         } catch (error) {
@@ -209,9 +226,22 @@ return;
                         className="min-w-0 flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm outline-none transition focus:border-indigo-500 focus:ring-1 focus:ring-indigo-200"
                         placeholder="Nome do formulário"
                     />
+                    {fields.length > 0 && (
+                        <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded whitespace-nowrap">
+                            {fields.length} campo{fields.length !== 1 ? 's' : ''}
+                        </span>
+                    )}
                 </div>
 
                 <div className="flex items-center gap-3">
+                    <button
+                        type="button"
+                        onClick={handleNewTemplate}
+                        className="rounded-lg bg-gray-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-600"
+                        title="Criar novo template (com confirmação se houver mudanças)"
+                    >
+                        Novo Template
+                    </button>
                     <button
                         type="button"
                         onClick={handleSaveTemplate}

@@ -19,9 +19,14 @@ class FormController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'structure' => 'required|array', // O JSON do Drag-and-Drop
-            'validation_sequence' => 'required|array',
+            'validation_sequence' => 'sometimes|array', // Pode ser vazio no início
             'allowed_roles' => 'required|array',
         ]);
+
+        // Garantir que validation_sequence existe (mesmo que vazio)
+        if (!isset($validated['validation_sequence'])) {
+            $validated['validation_sequence'] = [];
+        }
 
         // 2. Gravação: Usa o Model FormTemplate para inserir na BD
         $template = FormTemplate::create([
@@ -70,7 +75,7 @@ class FormController extends Controller
         $validated = $request->validate([
             'name' => 'sometimes|required|string|max:255',
             'structure' => 'sometimes|required|array',
-            'validation_sequence' => 'sometimes|required|array',
+            'validation_sequence' => 'sometimes|array', // Pode ser vazio ou array de passos
             'allowed_roles' => 'sometimes|required|array',
         ]);
 

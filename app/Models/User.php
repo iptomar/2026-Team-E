@@ -12,7 +12,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use App\Models\Label;
 
-#[Fillable(['name', 'email', 'password'])]
+#[Fillable(['name', 'email', 'password', 'department_id', 'cargo'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -34,6 +34,22 @@ class User extends Authenticatable
     }
 
     /**
+     * Um utilizador pertence a um departamento
+     */
+    public function department()
+    {
+        return $this->belongsTo(Department::class);
+    }
+
+    /**
+     * Um utilizador pode ter múltiplos labels/grupos (muitos-para-muitos)
+     */
+    public function labels()
+    {
+        return $this->belongsToMany(Label::class, 'users_labels');
+    }
+
+    /**
      * Relacionamento: Um utilizador pode criar múltiplos templates
      */
     public function formTemplates()
@@ -47,10 +63,5 @@ class User extends Authenticatable
     public function formSubmissions()
     {
         return $this->hasMany(FormSubmission::class);
-    }
-
-    public function labels(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
-    {
-        return $this->belongsToMany(Label::class, 'users_labels');
     }
 }

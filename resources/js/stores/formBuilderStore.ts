@@ -21,6 +21,7 @@ interface FormBuilderState {
     clearForm: () => void;
     setFormName: (name: string) => void;
     getSelectedField: () => FormField | null;
+    resetStore: () => void; // Nova função para resetar tudo
 }
 
 const GRID_SIZE = 10;
@@ -213,6 +214,17 @@ export const useFormStore = create<FormBuilderState>()(
                     state.fields.find((f) => f.id === state.selectedFieldId) ||
                     null
                 );
+            },
+
+            resetStore: () => {
+                // Reseta o estado e limpa localStorage
+                set({
+                    fields: [],
+                    selectedFieldId: null,
+                    formName: 'Untitled Form',
+                    gridSnapEnabled: true,
+                    gridSize: 10,
+                });
             },
         }),
         {
