@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\FormTemplate;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use App\Models\FormTemplateStructure;
 
 class FormController extends Controller
@@ -29,13 +30,20 @@ class FormController extends Controller
 
         // Usamos uma Transaction para garantir que se um falhar, nenhum é guardado
         $template = DB::transaction(function () use ($validated) {
-            // 1. Cria o template pai
-            $template = FormTemplate::create([
+            $templatePayload = [
                 'name' => $validated['name'],
                 'validation_sequence' => $validated['validation_sequence'],
                 'allowed_roles' => $validated['allowed_roles'],
                 'created_by' => auth()->id() ?? 1,
-            ]);
+            ];
+
+            // Compatibilidade com bases de dados antigas que ainda têm a coluna structure em form_templates.
+            if (Schema::hasColumn('form_templates', 'structure')) {
+                $templatePayload['structure'] = $validated['structure'];
+            }
+
+            // 1. Cria o template pai
+            $template = FormTemplate::create($templatePayload);
 
             // 2. Cria a primeira estrutura na tabela filha
             $template->structures()->create([
@@ -91,12 +99,19 @@ class FormController extends Controller
         ]);
 
         DB::transaction(function () use ($template, $validated) {
-            // Atualiza os dados do pai (se enviados)
-            $template->update(array_filter([
+            $payload = array_filter([
                 'name' => $validated['name'] ?? null,
                 'validation_sequence' => $validated['validation_sequence'] ?? null,
                 'allowed_roles' => $validated['allowed_roles'] ?? null,
-            ]));
+            ]);
+
+            // Compatibilidade com schema legado: mantém a coluna antiga alinhada quando existir.
+            if (isset($validated['structure']) && Schema::hasColumn('form_templates', 'structure')) {
+                $payload['structure'] = $validated['structure'];
+            }
+
+            // Atualiza os dados do pai (se enviados)
+            $template->update($payload);
 
             // Se o frontend enviou uma nova estrutura, criamos uma nova versão na BD
             if (isset($validated['structure'])) {

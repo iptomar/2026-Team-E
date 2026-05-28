@@ -10,12 +10,14 @@ class FormTemplate extends Model
 {
     protected $fillable = [
         'name',
+        'structure',
         'validation_sequence',
         'allowed_roles',
         'created_by',
     ];
 
     protected $casts = [
+        'structure' => 'array',
         'validation_sequence' => 'array',
         'allowed_roles' => 'array',
     ];
