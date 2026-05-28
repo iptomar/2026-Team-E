@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Head, router } from '@inertiajs/react';
+import { FileText, GitBranch, ArrowLeft } from 'lucide-react';
 import ReactFlow, {
     Background,
     Controls,
@@ -13,6 +14,15 @@ import { StepNode } from '@/components/workflow/StepNode';
 const nodeTypes = {
     stepNode: StepNode,
 };
+
+interface FormTemplate {
+    id: number;
+    name: string;
+    structure: any[];
+    validation_sequence: any[];
+    allowed_roles: string[];
+    created_at: string;
+}
 
 // Nota: Labels serão carregadas dinamicamente da API
 const DEFAULT_EMPTY_LABELS: any[] = [];
@@ -42,9 +52,12 @@ const WorkflowEditorInner = () => {
         'idle' | 'saving' | 'success' | 'error'
     >('idle');
     const [saveMessage, setSaveMessage] = useState<string>('');
+    const [templates, setTemplates] = useState<FormTemplate[]>([]);
+    const [templatesLoading, setTemplatesLoading] = useState(false);
     const canvasRef = useRef(null);
 
-    // Carregar template quando templateId está disponível
+    // Carregar template quando templateId está disponível,
+    // ou carregar lista de templates quando não há templateId
     useEffect(() => {
         if (typeof window === 'undefined') return;
         const params = new URLSearchParams(window.location.search);
@@ -78,6 +91,23 @@ const WorkflowEditorInner = () => {
                 }
             };
             fetchTemplate();
+        } else {
+            const fetchTemplatesList = async () => {
+                setTemplatesLoading(true);
+                try {
+                    const response = await fetch('/api/templates');
+                    if (response.ok) {
+                        const data = await response.json();
+                        setTemplates(Array.isArray(data) ? data : []);
+                    }
+                } catch (error) {
+                    console.error('Erro ao carregar templates:', error);
+                } finally {
+                    setTemplatesLoading(false);
+                    setLoading(false);
+                }
+            };
+            fetchTemplatesList();
         }
     }, []);
 
@@ -221,6 +251,35 @@ const WorkflowEditorInner = () => {
         }));
     };
 
+    // Selecionar um template da lista para configurar o workflow
+    const handleTemplateSelect = (t: FormTemplate) => {
+        setTemplate(t);
+        setTemplateId(t.id);
+        setSelectedNode(null);
+        setSaveStatus('idle');
+        setSaveMessage('');
+        if (t.validation_sequence && t.validation_sequence.length > 0) {
+            const loadedNodes = convertSequenceToNodes(t.validation_sequence);
+            setNodes(loadedNodes);
+            setEdges(buildEdges(loadedNodes));
+        } else {
+            setNodes([]);
+            setEdges([]);
+        }
+    };
+
+    // Voltar à lista de templates
+    const handleBackToList = () => {
+        setTemplate(null);
+        setTemplateId(null);
+        setNodes([]);
+        setEdges([]);
+        setSelectedNode(null);
+        setSaveStatus('idle');
+        setSaveMessage('');
+        router.visit('/workflow');
+    };
+
     // Guardar workflow no template
     const handleSaveWorkflow = async () => {
         if (!templateId) {
@@ -276,13 +335,24 @@ const WorkflowEditorInner = () => {
         }
     };
 
+    const hasTemplate = !!templateId && !!template;
+
     return (
         <div className="flex h-screen w-full overflow-hidden flex-col bg-gray-100">
-            {/* HEADER COM BOTÃO GRAVAR */}
+            {/* HEADER */}
             <div className="flex items-center justify-between gap-3 border-b border-gray-200 bg-white px-4 py-3 shadow-sm">
                 <div className="flex items-center gap-3">
+                    {hasTemplate && (
+                        <button
+                            type="button"
+                            onClick={handleBackToList}
+                            className="flex items-center gap-1.5 text-sm text-gray-500 transition hover:text-gray-900"
+                        >
+                            <ArrowLeft className="h-4 w-4" />
+                        </button>
+                    )}
                     <h2 className="text-lg font-semibold text-gray-900">
-                        Configurar Workflow de Validação
+                        {hasTemplate ? template.name : 'Configurar Workflow de Validação'}
                     </h2>
                     {templateId && (
                         <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
@@ -291,40 +361,97 @@ const WorkflowEditorInner = () => {
                     )}
                 </div>
 
-                <div className="flex items-center gap-3">
-                    <button
-                        type="button"
-                        onClick={handleSaveWorkflow}
-                        disabled={saveStatus === 'saving' || loading || nodes.length === 0}
-                        className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-indigo-300"
-                    >
-                        {saveStatus === 'saving'
-                            ? 'Gravando...'
-                            : 'Gravar Workflow'}
-                    </button>
-                    {saveMessage ? (
-                        <div
-                            className={`rounded-lg px-3 py-2 text-sm ${
-                                saveStatus === 'success'
-                                    ? 'bg-emerald-100 text-emerald-700'
-                                    : saveStatus === 'error'
-                                    ? 'bg-rose-100 text-rose-700'
-                                    : 'bg-slate-100 text-slate-700'
-                            }`}
+                {hasTemplate && (
+                    <div className="flex items-center gap-3">
+                        <button
+                            type="button"
+                            onClick={handleSaveWorkflow}
+                            disabled={saveStatus === 'saving' || loading || nodes.length === 0}
+                            className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-indigo-300"
                         >
-                            {saveMessage}
-                        </div>
-                    ) : null}
-                </div>
+                            {saveStatus === 'saving'
+                                ? 'Gravando...'
+                                : 'Gravar Workflow'}
+                        </button>
+                        {saveMessage ? (
+                            <div
+                                className={`rounded-lg px-3 py-2 text-sm ${
+                                    saveStatus === 'success'
+                                        ? 'bg-emerald-100 text-emerald-700'
+                                        : saveStatus === 'error'
+                                        ? 'bg-rose-100 text-rose-700'
+                                        : 'bg-slate-100 text-slate-700'
+                                }`}
+                            >
+                                {saveMessage}
+                            </div>
+                        ) : null}
+                    </div>
+                )}
             </div>
 
             {loading ? (
                 <div className="flex items-center justify-center flex-1">
-                    <div className="text-gray-500">Carregando template...</div>
+                    <div className="text-gray-500">Carregando...</div>
+                </div>
+            ) : !hasTemplate ? (
+                /* MODO SELEÇÃO: Lista de templates */
+                <div className="flex flex-1 overflow-hidden">
+                    <aside className="w-80 shrink-0 overflow-y-auto border-r border-gray-200 bg-white">
+                        <div className="border-b border-gray-200 px-5 py-4">
+                            <h1 className="text-lg font-semibold">
+                                Workflows
+                            </h1>
+                            <p className="mt-1 text-sm text-gray-500">
+                                Seleciona um formulário para configurar o workflow
+                            </p>
+                        </div>
+                        <div className="space-y-2 p-3">
+                            {templatesLoading && (
+                                <div className="rounded-lg border border-gray-200 px-3 py-3 text-sm text-gray-500">
+                                    A carregar templates...
+                                </div>
+                            )}
+                            {!templatesLoading && templates.map((t) => (
+                                <button
+                                    key={t.id}
+                                    type="button"
+                                    onClick={() => handleTemplateSelect(t)}
+                                    className="w-full rounded-lg border border-gray-200 bg-white px-3 py-3 text-left text-sm text-gray-700 transition hover:border-gray-300 hover:bg-gray-50"
+                                >
+                                    <div className="flex items-start gap-3">
+                                        <FileText className="mt-0.5 h-4 w-4 shrink-0 text-indigo-600" />
+                                        <div className="min-w-0">
+                                            <div className="truncate font-semibold">
+                                                {t.name}
+                                            </div>
+                                            <div className="mt-1 text-xs text-gray-500">
+                                                {t.validation_sequence?.length ?? 0} passo(s) de validação
+                                            </div>
+                                        </div>
+                                    </div>
+                                </button>
+                            ))}
+                            {!templatesLoading && templates.length === 0 && (
+                                <div className="rounded-lg border border-dashed border-gray-300 px-3 py-6 text-center text-sm text-gray-500">
+                                    Nenhum formulário disponível. Crie um formulário no Canvas primeiro.
+                                </div>
+                            )}
+                        </div>
+                    </aside>
+                    <main className="flex flex-1 items-center justify-center">
+                        <div className="text-center">
+                            <GitBranch className="mx-auto mb-3 h-10 w-10 text-gray-300" />
+                            <p className="text-sm text-gray-500">
+                                Seleciona um formulário ao lado para configurar o workflow
+                            </p>
+                        </div>
+                    </main>
                 </div>
             ) : (
+                /* MODO EDITOR: Workflow */
                 <div className="flex flex-1 overflow-hidden">
-                    {/* SIDEBAR ESQUERDA */}
+                    {/* SIDEBAR ESQUERDA: Passos */}
                     <aside className="w-64 flex-shrink-0 border-r bg-white p-4 overflow-y-auto">
                         <button
                             onClick={addNewStep}
@@ -388,7 +515,7 @@ const WorkflowEditorInner = () => {
                         </ReactFlow>
                     </main>
 
-                    {/* SIDEBAR DIREITA */}
+                    {/* SIDEBAR DIREITA: Editor de passo */}
                     <aside className="w-80 flex-shrink-0 border-l bg-white p-6 shadow-2xl overflow-y-auto">
                         {selectedNode ? (
                             <div className="space-y-6">
