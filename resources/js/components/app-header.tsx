@@ -1,7 +1,6 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
     BookOpen,
-    ClipboardList,
     CopyPlus,
     DraftingCompass,
     FileText,
@@ -69,11 +68,6 @@ const mainNavItems: NavItem[] = [
         title: 'Formulários',
         href: formsList(),
         icon: FileText,
-    },
-    {
-        title: 'Preencher',
-        href: '/preencher-formularios',
-        icon: ClipboardList,
     },
 ];
 

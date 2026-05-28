@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
 import { Head, router } from '@inertiajs/react';
+import React, { useEffect, useState } from 'react';
 
 interface Template {
     id: number;
@@ -31,6 +31,7 @@ export default function Edit() {
     const [editName, setEditName] = useState('');
     const [isSaving, setIsSaving] = useState(false);
     const [saveSuccess, setSaveSuccess] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -50,6 +51,7 @@ export default function Edit() {
         if (!id) {
             setError('Template ID não informado');
             setLoading(false);
+
             return;
         }
 
@@ -64,7 +66,10 @@ export default function Edit() {
                 headers: { Accept: 'application/json' },
                 credentials: 'same-origin',
             });
-            if (!response.ok) throw new Error('Não foi possível carregar o template');
+
+            if (!response.ok) {
+throw new Error('Não foi possível carregar o template');
+}
             
             const data = await response.json();
             setTemplate(data);
@@ -80,7 +85,10 @@ export default function Edit() {
                 headers: { Accept: 'application/json' },
                 credentials: 'same-origin',
             });
-            if (!response.ok) throw new Error('Não foi possível carregar as versões');
+
+            if (!response.ok) {
+throw new Error('Não foi possível carregar as versões');
+}
             
             const data = await response.json();
             setVersions(data.versions || []);
@@ -90,7 +98,9 @@ export default function Edit() {
     };
 
     const handleSaveName = async () => {
-        if (!templateId || !editName.trim() || editName === template?.name) return;
+        if (!templateId || !editName.trim() || editName === template?.name) {
+            return;
+        }
 
         setIsSaving(true);
         setSaveSuccess(false);
@@ -106,16 +116,49 @@ export default function Edit() {
                 credentials: 'same-origin',
             });
 
-            if (!response.ok) throw new Error('Erro ao atualizar o título do template');
+            if (!response.ok) {
+                throw new Error('Erro ao atualizar o título do template');
+            }
 
             const result = await response.json();
             setTemplate(result.data);
             setSaveSuccess(true);
-            setTimeout(() => setSaveSuccess(false), 3000);
+            setTimeout(() => setSaveSuccess(false), 2500);
         } catch (err) {
             alert(err instanceof Error ? err.message : 'Erro ao salvar');
         } finally {
             setIsSaving(false);
+        }
+    };
+
+    const handleDeleteTemplate = async () => {
+        if (!templateId || isDeleting) {
+return;
+}
+
+        const confirmed = window.confirm('Tens a certeza que queres eliminar este template? Esta ação não pode ser revertida.');
+
+        if (!confirmed) {
+return;
+}
+
+        setIsDeleting(true);
+
+        try {
+            const response = await fetch(`/api/templates/${templateId}`, {
+                method: 'DELETE',
+                headers: { Accept: 'application/json' },
+                credentials: 'same-origin',
+            });
+
+            if (!response.ok) {
+throw new Error('Não foi possível eliminar o template');
+}
+
+            router.visit('/forms-list');
+        } catch (err) {
+            alert(err instanceof Error ? err.message : 'Erro ao eliminar template');
+            setIsDeleting(false);
         }
     };
 
@@ -134,7 +177,9 @@ export default function Edit() {
                 credentials: 'same-origin',
             });
 
-            if (!response.ok) throw new Error('Não foi possível alterar o status da versão');
+            if (!response.ok) {
+throw new Error('Não foi possível alterar o status da versão');
+}
 
             const result = await response.json();
             const updatedStructure = result.data;
@@ -149,6 +194,7 @@ export default function Edit() {
                         // Se a linha foi ATIVADA (true), desativa automaticamente todas as outras na UI
                         return { ...v, is_active: false };
                     }
+
                     return v;
                 })
             );
@@ -172,7 +218,8 @@ export default function Edit() {
         }
     };
 
-    const isTitleChanged = template && editName !== template.name && editName.trim() !== '';
+    const isTitleChanged =
+        !!template && editName.trim() !== '' && editName !== template.name;
 
     return (
         <>
@@ -185,38 +232,38 @@ export default function Edit() {
                         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between px-6 py-5 bg-slate-100 border-b border-slate-200">
                             <div className="flex-1 max-w-lg">
                                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Template</p>
-                                <input
-                                    type="text"
-                                    value={editName}
-                                    onChange={(e) => setEditName(e.target.value)}
-                                    disabled={loading || !template}
-                                    placeholder="Nome do template"
-                                    className="mt-2 block w-full text-3xl font-semibold text-slate-900 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-indigo-500 focus:bg-white focus:ring-1 focus:ring-indigo-500 rounded-md px-1 py-0.5 transition-all outline-none"
-                                />
+                                <div className="mt-2 flex items-center gap-2">
+                                    <input
+                                        type="text"
+                                        value={editName}
+                                        onChange={(e) => setEditName(e.target.value)}
+                                        disabled={loading || !template}
+                                        placeholder="Nome do template"
+                                        className="block w-full text-3xl font-semibold text-slate-900 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-indigo-500 focus:bg-white focus:ring-1 focus:ring-indigo-500 rounded-md px-1 py-0.5 transition-all outline-none"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={handleSaveName}
+                                        disabled={!isTitleChanged || isSaving}
+                                        className="shrink-0 inline-flex items-center justify-center rounded-md bg-emerald-600 px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+                                        title="Gravar novo título"
+                                    >
+                                        {isSaving ? 'A guardar...' : 'Gravar'}
+                                    </button>
+                                </div>
                                 <div className="mt-1 flex items-center gap-3">
                                     <p className="text-sm text-slate-500">
                                         ID do template: <span className="font-medium text-slate-700">{templateId ?? '-'}</span>
                                     </p>
                                     {saveSuccess && (
                                         <span className="text-xs font-medium text-green-600 animate-fade-in">
-                                            ✓ Guardado com sucesso!
+                                            Título gravado com sucesso.
                                         </span>
                                     )}
                                 </div>
                             </div>
 
                             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                                <button
-                                    type="button"
-                                    onClick={handleSaveName}
-                                    disabled={!isTitleChanged || isSaving}
-                                    className={`inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold shadow-sm transition-all text-white
-                                        ${isTitleChanged 
-                                            ? 'bg-emerald-600 hover:bg-emerald-700 cursor-pointer' 
-                                            : 'bg-slate-300 cursor-not-allowed opacity-60'}`}
-                                >
-                                    {isSaving ? '⏳ A guardar...' : '💾 Guardar Título'}
-                                </button>
                                 <button
                                     type="button"
                                     onClick={openBuilder}
@@ -232,6 +279,14 @@ export default function Edit() {
                                     className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
                                 >
                                     🔄 Abrir Workflow
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleDeleteTemplate}
+                                    disabled={!templateId || isDeleting}
+                                    className="inline-flex items-center justify-center rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                    {isDeleting ? '⏳ A eliminar...' : '🗑️ Eliminar Template'}
                                 </button>
                             </div>
                         </div>
