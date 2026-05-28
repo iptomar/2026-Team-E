@@ -9,7 +9,7 @@ import {
 } from '@dnd-kit/core';
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { Head, router } from '@inertiajs/react';
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { Canvas } from '@/components/builder/Canvas';
 import { ComponentsSidebar } from '@/components/builder/ComponentsSidebar';
 import { PropertiesPanel } from '@/components/builder/PropertiesPanel';
@@ -33,7 +33,12 @@ const DEFAULT_FIELD_OFFSETS: Record<
 };
 
 export function BuilderContent() {
+    // Adicionado setFields (ou a função correspondente da tua store para injetar os campos carregados da API)
     const { addField, fields, formName, setFormName, resetStore } = useFormStore();
+    
+    // NOVO: Estado para armazenar o ID do template se ele vier na URL
+    const [templateId, setTemplateId] = useState<string | null>(null);
+    
     const [activeDragData, setActiveDragData] = useState<ActiveDragData | null>(
         null,
     );
@@ -42,6 +47,47 @@ export function BuilderContent() {
     >('idle');
     const [saveMessage, setSaveMessage] = useState<string>('');
     const canvasRef = useRef<HTMLDivElement | null>(null);
+
+    // NOVO: Efeito para ler o ID do URL e carregar os dados se o template já existir
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+
+        const params = new URLSearchParams(window.location.search);
+        const id = params.get('id') || params.get('templateId');
+        
+        if (id) {
+            setTemplateId(id);
+            setSaveStatus('saving');
+            setSaveMessage('A carregar template existente...');
+            
+            // Buscar os dados do template existente na API
+            fetch(`/api/templates/${id}`, {
+                headers: { Accept: 'application/json' },
+                credentials: 'same-origin',
+            })
+                .then((res) => {
+                    if (!res.ok) throw new Error('Não foi possível carregar o template');
+                    return res.json();
+                })
+                .then((data) => {
+                    setFormName(data.name);
+                    
+                    // IMPORTANTE: Aqui deves injetar os campos na tua store. 
+                    // Se a tua store tiver uma função 'setFields', usa-a aqui:
+                    // Exemplo: useFormStore.setState({ fields: data.structure || [] });
+                    if (data.structure && Array.isArray(data.structure)) {
+                        useFormStore.setState({ fields: data.structure });
+                    }
+                    
+                    setSaveStatus('idle');
+                    setSaveMessage('');
+                })
+                .catch((err) => {
+                    setSaveStatus('error');
+                    setSaveMessage(err.message || 'Erro ao carregar dados originais.');
+                });
+        }
+    }, [setFormName]);
 
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -59,8 +105,8 @@ export function BuilderContent() {
             const canvas = canvasRef.current;
 
             if (!canvas) {
-return { x: 40, y: 40 };
-}
+                return { x: 40, y: 40 };
+            }
 
             const rect = canvas.getBoundingClientRect();
             const scrollContainer = canvas.parentElement;
@@ -82,8 +128,8 @@ return { x: 40, y: 40 };
         const data = event.active.data.current as ActiveDragData | undefined;
 
         if (!data?.fieldType) {
-return;
-}
+            return;
+        }
 
         setActiveDragData({ fieldType: data.fieldType });
     }, []);
@@ -98,8 +144,8 @@ return;
             setActiveDragData(null);
 
             if (!over || !data?.fieldType) {
-return;
-}
+                return;
+            }
 
             const fieldType = data.fieldType;
             const dimensions = DEFAULT_FIELD_OFFSETS[fieldType];
@@ -140,41 +186,47 @@ return;
             if (!confirmed) return;
         }
 
-        // Limpar localStorage e resetar estado
         localStorage.removeItem('form-builder-storage');
         resetStore();
+        setTemplateId(null); // Limpa o ID para voltar ao modo de "Criação Nova"
         setSaveStatus('idle');
         setSaveMessage('');
+        
+        // Remove o query param da URL sem recarregar a página por completo
+        router.visit('/builder');
     }, [fields.length, resetStore]);
 
+    // MODIFICADO: Função de Gravação Híbrida (Criação vs Nova Versão)
     const handleSaveTemplate = useCallback(async () => {
         if (!formName?.trim()) {
             setSaveStatus('error');
             setSaveMessage('Informe um nome de template antes de gravar.');
-
             return;
         }
 
         if (fields.length === 0) {
             setSaveStatus('error');
             setSaveMessage('Adicione pelo menos um campo antes de gravar.');
-
             return;
         }
 
         setSaveStatus('saving');
-        setSaveMessage('Gravando template...');
+        setSaveMessage(templateId ? 'A gravar nova versão...' : 'A criar novo template...');
 
         const payload = {
             name: formName,
             structure: fields,
-            validation_sequence: [], // Vazio por enquanto, será preenchido no workflow
+            validation_sequence: [],
             allowed_roles: ['admin'],
         };
 
+        // Se houver um templateId, faz PUT para atualizar/criar versão. Caso contrário, faz POST.
+        const url = templateId ? `/api/templates/${templateId}` : '/api/templates';
+        const method = templateId ? 'PUT' : 'POST';
+
         try {
-            const response = await fetch('/api/templates', {
-                method: 'POST',
+            const response = await fetch(url, {
+                method: method,
                 headers: {
                     'Content-Type': 'application/json',
                     Accept: 'application/json',
@@ -186,27 +238,27 @@ return;
             if (!response.ok) {
                 const error = await response.json().catch(() => null);
                 setSaveStatus('error');
-                setSaveMessage(
-                    error?.message || 'Falha ao gravar o template.',
-                );
-
+                setSaveMessage(error?.message || 'Falha ao gravar o template.');
                 return;
             }
 
             const result = await response.json();
-            const templateId = result?.data?.id;
+            
+            // Captura o ID do template (seja o criado ou o já existente que foi retornado)
+            const finalTemplateId = templateId || result?.data?.id;
+            
             setSaveStatus('success');
-            setSaveMessage('Template gravado com sucesso.');
-            if (templateId) {
-                // Limpar localStorage antes de ir para workflow
+            setSaveMessage(templateId ? 'Nova versão da estrutura gravada!' : 'Template criado com sucesso!');
+            
+            if (finalTemplateId) {
                 localStorage.removeItem('form-builder-storage');
-                router.visit(`/workflow?templateId=${templateId}`);
+                router.visit(`/workflow?templateId=${finalTemplateId}`);
             }
         } catch (error) {
             setSaveStatus('error');
             setSaveMessage('Erro de rede ao gravar o template.');
         }
-    }, [fields, formName]);
+    }, [fields, formName, templateId]);
 
     return (
         <div className="flex h-screen flex-col bg-gray-100 text-gray-900">
@@ -226,6 +278,11 @@ return;
                         className="min-w-0 flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm outline-none transition focus:border-indigo-500 focus:ring-1 focus:ring-indigo-200"
                         placeholder="Nome do formulário"
                     />
+                    {templateId && (
+                        <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded whitespace-nowrap font-medium">
+                            Modo: Nova Versão (ID: {templateId})
+                        </span>
+                    )}
                     {fields.length > 0 && (
                         <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded whitespace-nowrap">
                             {fields.length} campo{fields.length !== 1 ? 's' : ''}
@@ -250,7 +307,7 @@ return;
                     >
                         {saveStatus === 'saving'
                             ? 'Gravando...'
-                            : 'Gravar template'}
+                            : templateId ? 'Gravar Nova Versão' : 'Gravar template'}
                     </button>
                     {saveMessage ? (
                         <div
@@ -302,5 +359,4 @@ export default function FormBuilder() {
     );
 }
 
-// To:
 FormBuilder.layout = (page: React.ReactNode) => page;

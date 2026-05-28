@@ -27,6 +27,11 @@ Route::put('/templates/{id}', [FormController::class, 'updateTemplate']);
 Route::delete('/templates/{id}', [FormController::class, 'destroyTemplate']);
 
 
+// Rota para listar o histórico de versões/estruturas de um template específico
+Route::get('/templates/{id}/structures', [FormController::class, 'indexStructures']);
+// Rota para ativar ou desativar uma estrutura específica
+Route::put('/structures/{structureId}/toggle-active', [FormController::class, 'toggleStructureActive']);
+
 // Rota para submeter os dados preenchidos pelo utilizador
 Route::post('/submissions', [FormSubmissionController::class, 'storeSubmission']);
 

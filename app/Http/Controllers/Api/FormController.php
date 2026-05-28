@@ -5,8 +5,9 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\FormTemplate;
-use App\Models\FormSubmission;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\DB;
+use App\Models\FormTemplateStructure;
 
 class FormController extends Controller
 {
@@ -15,35 +16,43 @@ class FormController extends Controller
      */
     public function storeTemplate(Request $request)
     {
-        // 1. Validação: Garante que os dados são obrigatórios e no formato correto
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'structure' => 'required|array', // O JSON do Drag-and-Drop
-            'validation_sequence' => 'sometimes|array', // Pode ser vazio no início
+            'structure' => 'required|array', // Recebido do frontend antigo
+            'validation_sequence' => 'sometimes|array',
             'allowed_roles' => 'required|array',
         ]);
 
-        // Garantir que validation_sequence existe (mesmo que vazio)
         if (!isset($validated['validation_sequence'])) {
             $validated['validation_sequence'] = [];
         }
 
-        // 2. Gravação: Usa o Model FormTemplate para inserir na BD
-        $template = FormTemplate::create([
-            'name' => $validated['name'],
-            'structure' => $validated['structure'],
-            'validation_sequence' => $validated['validation_sequence'],
-            'allowed_roles' => $validated['allowed_roles'],
-            'created_by' => auth()->id() ?? 1, // Usa o ID do admin logado
-        ]);
+        // Usamos uma Transaction para garantir que se um falhar, nenhum é guardado
+        $template = DB::transaction(function () use ($validated) {
+            // 1. Cria o template pai
+            $template = FormTemplate::create([
+                'name' => $validated['name'],
+                'validation_sequence' => $validated['validation_sequence'],
+                'allowed_roles' => $validated['allowed_roles'],
+                'created_by' => auth()->id() ?? 1,
+            ]);
 
-        // Log do evento de criação do template (para auditoria)
+            // 2. Cria a primeira estrutura na tabela filha
+            $template->structures()->create([
+                'structure' => $validated['structure'],
+                'version' => 1,
+                'is_active' => true
+            ]);
+
+            return $template;
+        });
+
+        // O log continua a receber o $template, que agora inclui o 'structure' via accessor
         $this->appendSaveTemplateEventChainLog($request, $validated, $template);
 
-        // 3. Resposta: Devolve o objeto criado e um código 201 (Created)
         return response()->json([
             'message' => 'Template criado com sucesso!',
-            'data' => $template
+            'data' => $template // Vai com o formato id, name, validation_sequence, allowed_roles, structure
         ], 201);
     }
 
@@ -52,21 +61,23 @@ class FormController extends Controller
      */
     public function showTemplate($id)
     {
-        $template = FormTemplate::findOrFail($id);
+        // O with('latestStructure') otimiza a BD. O accessor trata do resto.
+        $template = FormTemplate::with('latestStructure')->findOrFail($id);
         return response()->json($template);
     }
 
     /**
-     * Listar todos os templates (para admin ou utilizadores autorizados)
+     * Listar todos os templates
      */
     public function indexTemplates()
     {
-        $templates = FormTemplate::with('creator')->get();
+        // Trazemos o criador e a estrutura mais recente de cada um
+        $templates = FormTemplate::with(['creator', 'latestStructure'])->get();
         return response()->json($templates);
     }
 
     /**
-     * Atualizar um template existente
+     * Atualizar um template existente (Cria uma NOVA versão da estrutura)
      */
     public function updateTemplate(Request $request, $id)
     {
@@ -74,12 +85,38 @@ class FormController extends Controller
 
         $validated = $request->validate([
             'name' => 'sometimes|required|string|max:255',
-            'structure' => 'sometimes|required|array',
-            'validation_sequence' => 'sometimes|array', // Pode ser vazio ou array de passos
+            'structure' => 'sometimes|required|array', // Nova estrutura vinda do builder
+            'validation_sequence' => 'sometimes|array',
             'allowed_roles' => 'sometimes|required|array',
         ]);
 
-        $template->update($validated);
+        DB::transaction(function () use ($template, $validated) {
+            // Atualiza os dados do pai (se enviados)
+            $template->update(array_filter([
+                'name' => $validated['name'] ?? null,
+                'validation_sequence' => $validated['validation_sequence'] ?? null,
+                'allowed_roles' => $validated['allowed_roles'] ?? null,
+            ]));
+
+            // Se o frontend enviou uma nova estrutura, criamos uma nova versão na BD
+            if (isset($validated['structure'])) {
+                // Descobre o último número de versão existente
+                $lastVersion = $template->structures()->max('version') ?? 0;
+
+                // Desativa as versões antigas (opcional, bom para controle)
+                $template->structures()->update(['is_active' => false]);
+
+                // Cria o novo registo com a versão incrementada
+                $template->structures()->create([
+                    'structure' => $validated['structure'],
+                    'version' => $lastVersion + 1,
+                    'is_active' => true
+                ]);
+            }
+        });
+
+        // Recarrega o template com a nova estrutura para responder ao frontend
+        $template->load('latestStructure');
 
         return response()->json([
             'message' => 'Template atualizado com sucesso!',
@@ -93,48 +130,112 @@ class FormController extends Controller
     public function destroyTemplate($id)
     {
         $template = FormTemplate::findOrFail($id);
+        
+        // Graças ao cascadeOnDelete() na migração, as estruturas apagam-se sozinhas
         $template->delete();
 
         return response()->json([
             'message' => 'Template eliminado com sucesso!'
         ]);
     }
+    /**
+     * Listar todas as versões de estrutura de um template específico (id, version, is_active)
+     */
+    public function indexStructures($id)
+    {
+        // 1. Garante que o template existe
+        $template = FormTemplate::findOrFail($id);
 
+        // 2. Procura as estruturas associadas, selecionando apenas as colunas necessárias
+        $structures = $template->structures()
+            ->select(['id', 'form_template_id', 'version', 'is_active', 'created_at'])
+            ->orderBy('version', 'desc') // Mostra a mais recente primeiro
+            ->get();
 
-    
-
-    // Função auxiliar para escrever um log detalhado do processo de criação do template
-    protected function appendSaveTemplateEventChainLog(Request $request, array $validated, FormTemplate $template): void
+        // 3. Retorna a lista para o frontend
+        return response()->json([
+            'template_id' => $template->id,
+            'template_name' => $template->name,
+            'versions' => $structures
+        ]);
+    }
+    /**
+ * Ativa ou desativa uma estrutura específica com base no status enviado.
+ * Garante que apenas UMA estrutura do mesmo template fica ativa.
+ */
+public function toggleStructureActive(Request $request, $structureId)
 {
-    $logPath = storage_path('logs/save-template-event-chain.txt');
+    // 1. Valida o payload para saber se o utilizador quer ativar (true) ou desativar (false)
+    $validated = $request->validate([
+        'is_active' => 'required|boolean'
+    ]);
 
-    $lines = [
-        str_repeat('=', 100),
-        'Save template action',
-        'Timestamp: ' . now()->format('Y-m-d H:i:s.u'),
-        'Action: save button clicked in builder UI',
-        'Event: form builder collected template state from the store',
-        'Variable: formName => ' . $validated['name'],
-        'Variable: fields => ' . json_encode($validated['structure'], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE),
-        'Action: payload assembled for API call',
-        'Variable: validation_sequence => ' . json_encode($validated['validation_sequence']),
-        'Variable: allowed_roles => ' . json_encode($validated['allowed_roles']),
-        'Action: browser sends POST request to /api/templates with same-origin credentials',
-        'Action: Laravel matches request to route api/templates',
-        'Action: middleware auth:sanctum validates authenticated user',
-        'Action: FormController@storeTemplate is invoked',
-        'Variable: request payload => ' . json_encode($validated, JSON_UNESCAPED_UNICODE),
-        'Action: request data validated according to controller rules',
-        'Variable: validated data => ' . json_encode($validated, JSON_UNESCAPED_UNICODE),
-        'Action: FormTemplate model created in database',
-        'Variable: created_template_id => ' . $template->id,
-        'Variable: created_by => ' . $template->created_by,
-        'Action: API returns JSON response to frontend',
-        'Variable: response status => 201',
-        'Variable: response body => ' . json_encode($template->toArray(), JSON_UNESCAPED_UNICODE),
-        str_repeat('-', 100),
-    ];
+    // 2. Procura a estrutura alvo
+    $structure = FormTemplateStructure::findOrFail($structureId);
+    $templateId = $structure->form_template_id;
+    $shouldActivate = $validated['is_active'];
 
-    File::append($logPath, implode(PHP_EOL, $lines) . PHP_EOL);
+    // 3. Executa a operação dentro de uma Transaction para segurança
+    DB::transaction(function () use ($structure, $templateId, $shouldActivate) {
+        if ($shouldActivate) {
+            // REGRA: Se vai ativar esta, desativa TODAS as outras do mesmo template primeiro
+            FormTemplateStructure::where('form_template_id', $templateId)
+                ->where('id', '!=', $structure->id)
+                ->update(['is_active' => false]);
+
+            // Ativa a estrutura atual
+            $structure->update(['is_active' => true]);
+        } else {
+            // Se o objetivo é desativar, apenas muda para false (permitindo que o template fique sem nenhuma ativa)
+            $structure->update(['is_active' => false]);
+        }
+    });
+
+    // 4. Retorna a resposta de sucesso com o estado atualizado
+    return response()->json([
+        'message' => $shouldActivate 
+            ? 'Estrutura ativada com sucesso. Todas as outras foram desativadas.' 
+            : 'Estrutura desativada com sucesso. O template não possui nenhuma estrutura ativa de momento.',
+        'data' => [
+            'structure_id' => $structure->id,
+            'form_template_id' => $templateId,
+            'version' => $structure->version,
+            'is_active' => (bool)$structure->is_active
+        ]
+    ]);
 }
+    // Função de log mantida intacta
+    protected function appendSaveTemplateEventChainLog(Request $request, array $validated, FormTemplate $template): void
+    {
+        $logPath = storage_path('logs/save-template-event-chain.txt');
+
+        $lines = [
+            str_repeat('=', 100),
+            'Save template action',
+            'Timestamp: ' . now()->format('Y-m-d H:i:s.u'),
+            'Action: save button clicked in builder UI',
+            'Event: form builder collected template state from the store',
+            'Variable: formName => ' . $validated['name'],
+            'Variable: fields => ' . json_encode($validated['structure'], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE),
+            'Action: payload assembled for API call',
+            'Variable: validation_sequence => ' . json_encode($validated['validation_sequence']),
+            'Variable: allowed_roles => ' . json_encode($validated['allowed_roles']),
+            'Action: browser sends POST request to /api/templates with same-origin credentials',
+            'Action: Laravel matches request to route api/templates',
+            'Action: middleware auth:sanctum validates authenticated user',
+            'Action: FormController@storeTemplate is invoked',
+            'Variable: request payload => ' . json_encode($validated, JSON_UNESCAPED_UNICODE),
+            'Action: request data validated according to controller rules',
+            'Variable: validated data => ' . json_encode($validated, JSON_UNESCAPED_UNICODE),
+            'Action: FormTemplate model created in database',
+            'Variable: created_template_id => ' . $template->id,
+            'Variable: created_by => ' . $template->created_by,
+            'Action: API returns JSON response to frontend',
+            'Variable: response status => 201',
+            'Variable: response body => ' . json_encode($template->toArray(), JSON_UNESCAPED_UNICODE),
+            str_repeat('-', 100),
+        ];
+
+        File::append($logPath, implode(PHP_EOL, $lines) . PHP_EOL);
+    }
 }
