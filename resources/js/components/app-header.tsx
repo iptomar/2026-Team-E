@@ -1,9 +1,18 @@
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, Folder, DraftingCompass,GitBranch,CopyPlus, Menu, Search } from 'lucide-react';
+import {
+    BookOpen,
+    ClipboardList,
+    CopyPlus,
+    DraftingCompass,
+    FileText,
+    Folder,
+    GitBranch,
+    Menu,
+    Search,
+} from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import AppLogoIcon from '@/components/app-logo-icon';
 import { Breadcrumbs } from '@/components/breadcrumbs';
-import SearchTemplates from './search/template-search';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -33,7 +42,7 @@ import { UserMenuContent } from '@/components/user-menu-content';
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import { useInitials } from '@/hooks/use-initials';
 import { cn, toUrl } from '@/lib/utils';
-import { dashboard,builder,workflow } from '@/routes';
+import { dashboard, builder, workflow, formsList } from '@/routes';
 import type { BreadcrumbItem, NavItem } from '@/types';
 
 type Props = {
@@ -42,14 +51,29 @@ type Props = {
 
 const mainNavItems: NavItem[] = [
     {
-            title: 'Canvas',
-            href: builder(),
-            icon: DraftingCompass,
+        title: 'Canvas',
+        href: builder(),
+        icon: DraftingCompass,
+    },
+    {
+        title: 'Workflows',
+        href: workflow(),
+        icon: GitBranch,
     },
     {
         title: 'Templates',
         href: dashboard(),
         icon: CopyPlus,
+    },
+    {
+        title: 'Formulários',
+        href: formsList(),
+        icon: FileText,
+    },
+    {
+        title: 'Preencher',
+        href: '/preencher-formularios',
+        icon: ClipboardList,
     },
 ];
 
@@ -78,7 +102,7 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
     return (
         <>
             <div className="border-b border-sidebar-border/80">
-                <div className="mx-auto flex h-16 items-center px-4 md:max-w-7xl">
+                <div className="flex h-16 items-center px-4">
                     {/* Mobile Menu */}
                     <div className="lg:hidden">
                         <Sheet>
@@ -244,7 +268,7 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
             </div>
             {breadcrumbs.length > 1 && (
                 <div className="flex w-full border-b border-sidebar-border/70">
-                    <div className="mx-auto flex h-12 w-full items-center justify-start px-4 text-neutral-500 md:max-w-7xl">
+                    <div className="flex h-12 w-full items-center justify-start px-4 text-neutral-500">
                         <Breadcrumbs breadcrumbs={breadcrumbs} />
                     </div>
                 </div>

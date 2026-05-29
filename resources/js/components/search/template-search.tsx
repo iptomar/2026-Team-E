@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
 import { Search, X } from 'lucide-react';
+import React, { useState } from 'react';
 
 // Definimos o que é um Template (ajusta as propriedades se necessário)
 interface Template {

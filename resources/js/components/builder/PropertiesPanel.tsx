@@ -37,7 +37,9 @@ export function PropertiesPanel() {
 
     // reset when selecting field
     useEffect(() => {
-        if (!selectedField) return;
+        if (!selectedField) {
+return;
+}
 
         isResetting.current = true;
 
@@ -59,8 +61,13 @@ export function PropertiesPanel() {
 
     // sync updates
     useEffect(() => {
-        if (!selectedField || !selectedFieldId) return;
-        if (isResetting.current) return;
+        if (!selectedField || !selectedFieldId) {
+return;
+}
+
+        if (isResetting.current) {
+return;
+}
 
         const changed =
             formValues.label !== selectedField.label ||
@@ -71,7 +78,9 @@ export function PropertiesPanel() {
             JSON.stringify(formValues.options) !==
                 JSON.stringify(selectedField.options);
 
-        if (!changed) return;
+        if (!changed) {
+return;
+}
 
         updateField(selectedFieldId, formValues);
     }, [formValues, selectedFieldId, selectedField]);
