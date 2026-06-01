@@ -33,15 +33,15 @@ Route::get('/templates/{id}/structures', [FormController::class, 'indexStructure
 Route::put('/structures/{structureId}/toggle-active', [FormController::class, 'toggleStructureActive']);
 
 // Rota para submeter os dados preenchidos pelo utilizador
-Route::post('/submissions', [FormSubmissionController::class, 'storeSubmission']);
+Route::post('/submissions', [FormSubmissionController::class, 'storeSubmission'])->middleware(['web', 'auth']);
 
 // Rota para visualizar o formulário preenchido (Template + Dados)
-Route::get('/submissions/{id}', [FormSubmissionController::class, 'showSubmission']);
+Route::get('/submissions/{id}', [FormSubmissionController::class, 'showSubmission'])->middleware(['web', 'auth']);
 
 // Rotas adicionais para submissões
-Route::get('/submissions', [FormSubmissionController::class, 'indexSubmissions']);
-Route::put('/submissions/{id}', [FormSubmissionController::class, 'updateSubmission']);
-Route::delete('/submissions/{id}', [FormSubmissionController::class, 'destroySubmission']);
+Route::get('/submissions', [FormSubmissionController::class, 'indexSubmissions'])->middleware(['web', 'auth']);
+Route::put('/submissions/{id}', [FormSubmissionController::class, 'updateSubmission'])->middleware(['web', 'auth']);
+Route::delete('/submissions/{id}', [FormSubmissionController::class, 'destroySubmission'])->middleware(['web', 'auth']);
 
 
 // Listar todas as labels disponíveis para o editor

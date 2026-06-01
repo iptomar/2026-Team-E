@@ -168,6 +168,81 @@ function Card({
     );
 }
 
+interface SubmissionCardProps {
+    formName: string;
+    submittedAt: string;
+    submittedBy: string;
+    onViewDetails: () => void;
+    onDelete: () => void;
+}
+
+function SubmissionCard({
+    formName,
+    submittedAt,
+    submittedBy,
+    onViewDetails,
+    onDelete,
+}: SubmissionCardProps) {
+    const formattedDate = new Date(submittedAt).toLocaleDateString('pt-BR', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+    });
+
+    return (
+        <div className="group w-[280px] shrink-0 snap-start rounded-2xl border border-gray-200 bg-white p-4 transition-all duration-200 hover:-translate-y-1 hover:border-indigo-300 hover:shadow-md">
+            <div className="mb-3 flex items-start justify-between">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-50 to-purple-50 text-indigo-600">
+                    <FileText className="h-5 w-5" />
+                </div>
+
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <button className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-600">
+                            <MoreVertical className="h-4 w-4" />
+                        </button>
+                    </DropdownMenuTrigger>
+
+                    <DropdownMenuContent align="end" className="w-48">
+                        <DropdownMenuItem
+                            className="gap-2 text-red-600 focus:text-red-600"
+                            onClick={onDelete}
+                        >
+                            <Trash2 className="h-4 w-4" />
+                            Eliminar
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            </div>
+
+            <div className="flex-1 mb-4">
+                <h3 className="mb-1 text-sm font-semibold text-gray-900">
+                    {formName}
+                </h3>
+
+                <p className="text-xs text-gray-500">
+                    {formattedDate}
+                </p>
+
+                <p className="mt-2 text-xs text-gray-600">
+                    Submetido por: <span className="font-medium">{submittedBy}</span>
+                </p>
+            </div>
+
+            <div className="border-t border-gray-100 pt-4">
+                <Button
+                    size="sm"
+                    className="w-full gap-2 bg-indigo-600 text-xs text-white hover:bg-indigo-700"
+                    onClick={onViewDetails}
+                >
+                    <Eye className="h-4 w-4" />
+                    Ver detalhes
+                </Button>
+            </div>
+        </div>
+    );
+}
+
 function PreviewModal({
     open,
     onClose,
@@ -465,9 +540,9 @@ export default function FormsList() {
     const handlePreviewTemplate = (submission: FormSubmission) => {
         setPreviewData({
             type: 'template',
-            name: submission.formTemplate?.name || `Submissão #${submission.id}`,
+            name: submission.form_template?.name || `Submissão #${submission.id}`,
             data: {
-                structure: submission.formTemplate?.structure || [],
+                structure: submission.form_template?.structure || [],
                 submitted_data: submission.submitted_data,
             },
         });
@@ -480,6 +555,10 @@ export default function FormsList() {
 
     const handleFillForm = (templateId: number) => {
         router.visit(`/preencher-formularios?templateId=${templateId}`);
+    };
+
+    const handleViewSubmissionDetails = (submissionId: number) => {
+        router.visit(`/submission-details?id=${submissionId}`);
     };
 
     const formulariosEmpty = formularios.length === 0;
@@ -573,7 +652,7 @@ export default function FormsList() {
                                 )}
                             </section>
 
-                            {/* Templates - from /api/submissions */}
+                            {/* Histórico - Submissões de formulários */}
                             <section>
                                 <div className="mb-5">
                                     <h2 className="text-lg font-semibold text-gray-900">
@@ -587,23 +666,19 @@ export default function FormsList() {
 
                                 {templatesEmpty ? (
                                     <EmptyState
-                                        title="Sem templates ainda"
-                                        description="Crie templates no builder para reutilizar"
+                                        title="Sem submissões ainda"
+                                        description="Os formulários preenchidos aparecerão aqui"
                                     />
                                 ) : (
                                     <div className="flex snap-x gap-4 overflow-x-auto pb-2">
                                         {templates.map((submission) => (
-                                            <Card
+                                            <SubmissionCard
                                                 key={submission.id}
-                                                name={submission.formTemplate?.name || `Submissão #${submission.id}`}
-                                                createdAt={submission.created_at}
-                                                icon={<FileText className="h-5 w-5" />}
-                                                onDelete={() =>
-                                                    handleDeleteTemplate(submission.id)
-                                                }
-                                                onPreview={() =>
-                                                    handlePreviewTemplate(submission)
-                                                }
+                                                formName={submission.form_template?.name || `Submissão #${submission.id}`}
+                                                submittedAt={submission.created_at}
+                                                submittedBy={submission.user?.name || 'Utilizador desconhecido'}
+                                                onViewDetails={() => handleViewSubmissionDetails(submission.id)}
+                                                onDelete={() => handleDeleteTemplate(submission.id)}
                                             />
                                         ))}
                                     </div>

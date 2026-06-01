@@ -33,8 +33,12 @@ class FormSubmissionController extends Controller
      */
     public function showSubmission($id)
     {
-        // O segredo está aqui: with('formTemplate') carrega a estrutura original
-        $submission = FormSubmission::with('formTemplate')->findOrFail($id);
+        // O segredo está aqui: with() carrega a estrutura original + user + validation steps
+        $submission = FormSubmission::with([
+            'formTemplate',
+            'formTemplate.validationSteps',
+            'user'
+        ])->findOrFail($id);
 
         return response()->json($submission);
     }
@@ -46,8 +50,8 @@ class FormSubmissionController extends Controller
     {
         $query = FormSubmission::with(['formTemplate', 'user']);
 
-        // Se não for admin, mostrar apenas as próprias submissões
-        if (!auth()->user()?->hasRole('admin')) {
+        // Filtrar apenas as submissões do utilizador autenticado
+        if (auth()->check()) {
             $query->where('user_id', auth()->id());
         }
 
