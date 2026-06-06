@@ -1,19 +1,17 @@
 <?php
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\DepartmentController;
 use App\Http\Controllers\Api\FormController;
 use App\Http\Controllers\Api\FormSubmissionController;
 use App\Http\Controllers\Api\LabelController;
-use App\Http\Controllers\Api\DepartmentController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\UserManagementController;
-
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
-
 
 // Rota para guardar um novo template (Admin)
 Route::post('/templates', [FormController::class, 'storeTemplate']);
@@ -25,7 +23,10 @@ Route::get('/templates/{id}', [FormController::class, 'showTemplate']);
 Route::get('/templates', [FormController::class, 'indexTemplates']);
 Route::put('/templates/{id}', [FormController::class, 'updateTemplate']);
 Route::delete('/templates/{id}', [FormController::class, 'destroyTemplate']);
-
+Route::put('/templates/{id}/folder', [FormController::class, 'assignFolder']);
+Route::get('/template-folders', [FormController::class, 'indexFolders']);
+Route::post('/template-folders', [FormController::class, 'storeFolder']);
+Route::delete('/template-folders/{folderId}', [FormController::class, 'destroyFolder']);
 
 // Rota para listar o histórico de versões/estruturas de um template específico
 Route::get('/templates/{id}/structures', [FormController::class, 'indexStructures']);
@@ -43,14 +44,12 @@ Route::get('/submissions', [FormSubmissionController::class, 'indexSubmissions']
 Route::put('/submissions/{id}', [FormSubmissionController::class, 'updateSubmission'])->middleware(['web', 'auth']);
 Route::delete('/submissions/{id}', [FormSubmissionController::class, 'destroySubmission'])->middleware(['web', 'auth']);
 
-
 // Listar todas as labels disponíveis para o editor
-Route::get('/labels', [LabelController::class, 'index']); 
+Route::get('/labels', [LabelController::class, 'index']);
 
 // Criar/Editar labels (Cargos/Departamentos)
 Route::post('/labels', [LabelController::class, 'store']);
 Route::put('/labels/{id}', [LabelController::class, 'update']);
-
 
 // Salvar todo o fluxo desenhado no React Flow de uma vez
 // Esse endpoint processa o JSON do canvas e sincroniza a tabela form_validation_steps
@@ -59,14 +58,12 @@ Route::post('/templates/{templateId}/workflow', [FormController::class, 'syncWor
 // Buscar o workflow de um template para carregar no editor
 Route::get('/templates/{templateId}/workflow', [FormController::class, 'getWorkflow']);
 
-
 // ===== ROTAS DE GESTÃO DE DEPARTAMENTOS =====
 Route::get('/departments', [DepartmentController::class, 'index']);
 Route::get('/departments/{id}', [DepartmentController::class, 'show']);
 Route::post('/departments', [DepartmentController::class, 'store']);
 Route::put('/departments/{id}', [DepartmentController::class, 'update']);
 Route::delete('/departments/{id}', [DepartmentController::class, 'destroy']);
-
 
 // ===== ROTAS DE GESTÃO DE ROLES/LABELS/GRUPOS =====
 Route::get('/roles', [RoleController::class, 'index']);
@@ -78,7 +75,6 @@ Route::delete('/roles/{id}', [RoleController::class, 'destroy']);
 // Adicionar/Remover utilizadores de roles
 Route::post('/roles/{id}/users', [RoleController::class, 'addUser']);
 Route::delete('/roles/{roleId}/users/{userId}', [RoleController::class, 'removeUser']);
-
 
 // ===== ROTAS DE GESTÃO DE UTILIZADORES =====
 Route::get('/users-management', [UserManagementController::class, 'index']);

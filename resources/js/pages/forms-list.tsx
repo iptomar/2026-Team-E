@@ -10,6 +10,8 @@ import {
     FileText,
     LayoutGrid,
     ClipboardList,
+    Search,
+    X,
 } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
@@ -397,6 +399,7 @@ function ErrorState({ message, onRetry }: { message: string; onRetry: () => void
 export default function FormsList() {
     const [formularios, setFormularios] = useState<Template[]>([]);
     const [templates, setTemplates] = useState<FormSubmission[]>([]);
+    const [searchTerm, setSearchTerm] = useState('');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [previewData, setPreviewData] = useState<PreviewData | null>(null);
@@ -561,8 +564,47 @@ export default function FormsList() {
         router.visit(`/submission-details?id=${submissionId}`);
     };
 
-    const formulariosEmpty = formularios.length === 0;
-    const templatesEmpty = templates.length === 0;
+    const normalizedSearch = searchTerm.trim().toLowerCase();
+
+    const filteredFormularios = formularios.filter((template) => {
+        if (!normalizedSearch) {
+            return true;
+        }
+
+        const searchableContent = [
+            template.name,
+            template.creator?.name,
+            new Date(template.created_at).toLocaleDateString('pt-BR'),
+        ]
+            .filter(Boolean)
+            .join(' ')
+            .toLowerCase();
+
+        return searchableContent.includes(normalizedSearch);
+    });
+
+    const filteredTemplates = templates.filter((submission) => {
+        if (!normalizedSearch) {
+            return true;
+        }
+
+        const searchableContent = [
+            submission.form_template?.name,
+            submission.user?.name,
+            submission.status,
+            `submissão ${submission.id}`,
+            new Date(submission.created_at).toLocaleDateString('pt-BR'),
+        ]
+            .filter(Boolean)
+            .join(' ')
+            .toLowerCase();
+
+        return searchableContent.includes(normalizedSearch);
+    });
+
+    const formulariosEmpty = filteredFormularios.length === 0;
+    const templatesEmpty = filteredTemplates.length === 0;
+    const hasSearch = normalizedSearch.length > 0;
 
     return (
         <>
@@ -603,6 +645,58 @@ export default function FormsList() {
                         <ErrorState message={error} onRetry={loadData} />
                     ) : (
                         <div className="space-y-10">
+                            <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+                                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                                    <div>
+                                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-600">
+                                            Pesquisa Global
+                                        </p>
+                                        <h2 className="mt-1 text-lg font-semibold text-slate-900">
+                                            Encontra formulários e submissões
+                                        </h2>
+                                        <p className="mt-1 text-sm text-slate-500">
+                                            Pesquisa por nome do formulário, utilizador, data ou submissão.
+                                        </p>
+                                    </div>
+
+                                    <div className="w-full lg:max-w-xl">
+                                        <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 shadow-inner shadow-slate-100">
+                                            <Search className="h-4 w-4 shrink-0 text-slate-400" />
+                                            <input
+                                                type="text"
+                                                value={searchTerm}
+                                                onChange={(event) => setSearchTerm(event.target.value)}
+                                                placeholder="Pesquisar formulários e histórico..."
+                                                className="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400"
+                                            />
+                                            {hasSearch && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setSearchTerm('')}
+                                                    className="flex h-8 w-8 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-200 hover:text-slate-600"
+                                                >
+                                                    <X className="h-4 w-4" />
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="mt-4 flex flex-wrap gap-3 text-sm">
+                                    <div className="rounded-full bg-indigo-50 px-4 py-2 font-medium text-indigo-700">
+                                        Formulários: {filteredFormularios.length}
+                                    </div>
+                                    <div className="rounded-full bg-emerald-50 px-4 py-2 font-medium text-emerald-700">
+                                        Submissões: {filteredTemplates.length}
+                                    </div>
+                                    {hasSearch && (
+                                        <div className="rounded-full bg-slate-100 px-4 py-2 font-medium text-slate-700">
+                                            Pesquisa: {searchTerm}
+                                        </div>
+                                    )}
+                                </div>
+                            </section>
+
                             {/* Formulários - from /api/templates */}
                             <section>
                                 <div className="mb-5 flex items-center justify-between">
@@ -619,12 +713,16 @@ export default function FormsList() {
 
                                 {formulariosEmpty ? (
                                     <EmptyState
-                                        title="Sem formulários ainda"
-                                        description="Clique em 'Criar formulário' para começar"
+                                        title={hasSearch ? 'Nenhum formulário encontrado' : 'Sem formulários ainda'}
+                                        description={
+                                            hasSearch
+                                                ? 'Tenta outro termo para encontrar formulários disponíveis.'
+                                                : "Clique em 'Criar formulário' para começar"
+                                        }
                                     />
                                 ) : (
                                     <div className="flex snap-x gap-4 overflow-x-auto pb-2">
-                                        {formularios.map((template) => (
+                                        {filteredFormularios.map((template) => (
                                             <Card
                                                 key={template.id}
                                                 name={template.name}
@@ -666,12 +764,16 @@ export default function FormsList() {
 
                                 {templatesEmpty ? (
                                     <EmptyState
-                                        title="Sem submissões ainda"
-                                        description="Os formulários preenchidos aparecerão aqui"
+                                        title={hasSearch ? 'Nenhuma submissão encontrada' : 'Sem submissões ainda'}
+                                        description={
+                                            hasSearch
+                                                ? 'Tenta outro termo para encontrar formulários submetidos.'
+                                                : 'Os formulários preenchidos aparecerão aqui'
+                                        }
                                     />
                                 ) : (
                                     <div className="flex snap-x gap-4 overflow-x-auto pb-2">
-                                        {templates.map((submission) => (
+                                        {filteredTemplates.map((submission) => (
                                             <SubmissionCard
                                                 key={submission.id}
                                                 formName={submission.form_template?.name || `Submissão #${submission.id}`}

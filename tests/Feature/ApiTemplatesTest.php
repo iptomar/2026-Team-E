@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\FormTemplate;
+use App\Models\FormTemplateStructure;
 use App\Models\User;
 use Illuminate\Support\Facades\File;
 
@@ -61,7 +62,6 @@ test('api templates endpoint stores a form template and database contains the sa
     expect($template->allowed_roles)->toEqual($payload['allowed_roles']);
 });
 
-
 // cria um user (admin) e um template, depois verifica se o conteúdo da base de dados é escrito num ficheiro de log
 test('writes database content to a log report after api template creation', function () {
     $user = User::factory()->create();
@@ -92,20 +92,20 @@ test('writes database content to a log report after api template creation', func
     $reportLines = [
         'API Templates database report',
         '=============================',
-        'Total templates: ' . $templates->count(),
+        'Total templates: '.$templates->count(),
         '',
     ];
 
     foreach ($templates as $template) {
-        $reportLines[] = 'Template ID: ' . $template->id;
-        $reportLines[] = 'Name: ' . $template->name;
-        $reportLines[] = 'Created by: ' . $template->created_by;
-        $reportLines[] = 'Creator email: ' . $template->creator?->email;
-        $reportLines[] = 'Structure: ' . json_encode($template->structure, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-        $reportLines[] = 'Validation sequence: ' . json_encode($template->validation_sequence);
-        $reportLines[] = 'Allowed roles: ' . json_encode($template->allowed_roles);
-        $reportLines[] = 'Created at: ' . $template->created_at;
-        $reportLines[] = 'Updated at: ' . $template->updated_at;
+        $reportLines[] = 'Template ID: '.$template->id;
+        $reportLines[] = 'Name: '.$template->name;
+        $reportLines[] = 'Created by: '.$template->created_by;
+        $reportLines[] = 'Creator email: '.$template->creator?->email;
+        $reportLines[] = 'Structure: '.json_encode($template->structure, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        $reportLines[] = 'Validation sequence: '.json_encode($template->validation_sequence);
+        $reportLines[] = 'Allowed roles: '.json_encode($template->allowed_roles);
+        $reportLines[] = 'Created at: '.$template->created_at;
+        $reportLines[] = 'Updated at: '.$template->updated_at;
         $reportLines[] = str_repeat('-', 80);
     }
 
@@ -117,5 +117,190 @@ test('writes database content to a log report after api template creation', func
 
     expect(File::exists($reportPath))->toBeTrue();
     expect(File::get($reportPath))->toContain('API Templates database report');
-    expect(File::get($reportPath))->toContain('Template ID: ' . $templates->first()->id);
+    expect(File::get($reportPath))->toContain('Template ID: '.$templates->first()->id);
+});
+
+test('show template returns the active structure instead of always returning the latest version', function () {
+    $user = User::factory()->create();
+
+    $template = FormTemplate::create([
+        'name' => 'Template com historico',
+        'validation_sequence' => [],
+        'allowed_roles' => ['admin'],
+        'created_by' => $user->id,
+    ]);
+
+    $v1 = $template->structures()->create([
+        'structure' => [['id' => 'field-v1', 'type' => 'input', 'label' => 'Versao 1', 'name' => 'v1']],
+        'version' => 1,
+        'is_active' => false,
+    ]);
+
+    $v2 = $template->structures()->create([
+        'structure' => [['id' => 'field-v2', 'type' => 'input', 'label' => 'Versao 2', 'name' => 'v2']],
+        'version' => 2,
+        'is_active' => true,
+    ]);
+
+    $v3 = $template->structures()->create([
+        'structure' => [['id' => 'field-v3', 'type' => 'input', 'label' => 'Versao 3', 'name' => 'v3']],
+        'version' => 3,
+        'is_active' => false,
+    ]);
+
+    $this->actingAs($user)
+        ->putJson("/api/structures/{$v1->id}/toggle-active", [
+            'is_active' => true,
+        ])
+        ->assertOk()
+        ->assertJsonPath('data.structure_id', $v1->id)
+        ->assertJsonPath('data.is_active', true);
+
+    $templateResponse = $this->actingAs($user)
+        ->getJson("/api/templates/{$template->id}");
+
+    $templateResponse->assertOk()
+        ->assertJsonPath('structure.0.id', 'field-v1')
+        ->assertJsonPath('structure.0.label', 'Versao 1');
+
+    expect(FormTemplateStructure::find($v1->id)?->is_active)->toBeTrue();
+    expect(FormTemplateStructure::find($v2->id)?->is_active)->toBeFalse();
+    expect(FormTemplateStructure::find($v3->id)?->is_active)->toBeFalse();
+});
+
+test('updating a template after activating an old version keeps old versions and creates a new active version', function () {
+    $user = User::factory()->create();
+
+    $createResponse = $this->actingAs($user)->postJson('/api/templates', [
+        'name' => 'Template versionado',
+        'structure' => [['id' => 'field-v1', 'type' => 'input', 'label' => 'Base', 'name' => 'base']],
+        'validation_sequence' => [],
+        'allowed_roles' => ['admin'],
+    ]);
+
+    $templateId = $createResponse->json('data.id');
+
+    $this->actingAs($user)->putJson("/api/templates/{$templateId}", [
+        'name' => 'Template versionado',
+        'structure' => [['id' => 'field-v2', 'type' => 'input', 'label' => 'Mais recente', 'name' => 'latest']],
+        'validation_sequence' => [],
+        'allowed_roles' => ['admin'],
+    ])->assertOk();
+
+    $firstVersion = FormTemplateStructure::where('form_template_id', $templateId)
+        ->where('version', 1)
+        ->firstOrFail();
+
+    $this->actingAs($user)
+        ->putJson("/api/structures/{$firstVersion->id}/toggle-active", [
+            'is_active' => true,
+        ])
+        ->assertOk();
+
+    $this->actingAs($user)->putJson("/api/templates/{$templateId}", [
+        'name' => 'Template versionado',
+        'structure' => [['id' => 'field-v3', 'type' => 'input', 'label' => 'Nova derivada da ativa', 'name' => 'derived']],
+        'validation_sequence' => [],
+        'allowed_roles' => ['admin'],
+    ])->assertOk();
+
+    $structures = FormTemplateStructure::where('form_template_id', $templateId)
+        ->orderBy('version')
+        ->get();
+
+    expect($structures)->toHaveCount(3);
+    expect($structures->pluck('version')->all())->toBe([1, 2, 3]);
+    expect($structures->where('version', 1)->first()?->is_active)->toBeFalse();
+    expect($structures->where('version', 2)->first()?->is_active)->toBeFalse();
+    expect($structures->where('version', 3)->first()?->is_active)->toBeTrue();
+
+    $templateResponse = $this->actingAs($user)
+        ->getJson("/api/templates/{$templateId}");
+
+    $templateResponse->assertOk()
+        ->assertJsonPath('structure.0.id', 'field-v3')
+        ->assertJsonPath('structure.0.label', 'Nova derivada da ativa');
+});
+
+test('admin can create folders and assign templates to them', function () {
+    $user = User::factory()->create();
+
+    $folderResponse = $this->actingAs($user)->postJson('/api/template-folders', [
+        'name' => 'Recursos Humanos',
+    ]);
+
+    $folderResponse->assertCreated()
+        ->assertJsonPath('data.name', 'Recursos Humanos');
+
+    $folderId = $folderResponse->json('data.id');
+
+    $templateResponse = $this->actingAs($user)->postJson('/api/templates', [
+        'name' => 'Pedido de Férias',
+        'structure' => [['id' => 'field-1', 'type' => 'input', 'label' => 'Nome', 'name' => 'nome']],
+        'validation_sequence' => [],
+        'allowed_roles' => ['admin'],
+        'folder_id' => $folderId,
+    ]);
+
+    $templateId = $templateResponse->json('data.id');
+
+    $this->assertDatabaseHas('form_templates', [
+        'id' => $templateId,
+        'folder_id' => $folderId,
+    ]);
+
+    $this->actingAs($user)
+        ->getJson('/api/templates')
+        ->assertOk()
+        ->assertJsonFragment([
+            'id' => $templateId,
+            'folder_id' => $folderId,
+        ])
+        ->assertJsonFragment([
+            'id' => $folderId,
+            'name' => 'Recursos Humanos',
+        ]);
+
+    $this->actingAs($user)
+        ->putJson("/api/templates/{$templateId}/folder", [
+            'folder_id' => null,
+        ])
+        ->assertOk()
+        ->assertJsonPath('data.folder_id', null);
+
+    $this->assertDatabaseHas('form_templates', [
+        'id' => $templateId,
+        'folder_id' => null,
+    ]);
+});
+
+test('deleting a folder keeps templates and removes their folder assignment', function () {
+    $user = User::factory()->create();
+
+    $folderId = $this->actingAs($user)
+        ->postJson('/api/template-folders', ['name' => 'Financeiro'])
+        ->json('data.id');
+
+    $templateId = $this->actingAs($user)
+        ->postJson('/api/templates', [
+            'name' => 'Reembolso',
+            'structure' => [['id' => 'field-1', 'type' => 'input', 'label' => 'Valor', 'name' => 'valor']],
+            'validation_sequence' => [],
+            'allowed_roles' => ['admin'],
+            'folder_id' => $folderId,
+        ])
+        ->json('data.id');
+
+    $this->actingAs($user)
+        ->deleteJson("/api/template-folders/{$folderId}")
+        ->assertOk();
+
+    $this->assertDatabaseMissing('form_template_folders', [
+        'id' => $folderId,
+    ]);
+
+    $this->assertDatabaseHas('form_templates', [
+        'id' => $templateId,
+        'folder_id' => null,
+    ]);
 });

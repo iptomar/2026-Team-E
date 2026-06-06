@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
@@ -14,6 +15,7 @@ class FormTemplate extends Model
         'validation_sequence',
         'allowed_roles',
         'created_by',
+        'folder_id',
     ];
 
     protected $casts = [
@@ -44,13 +46,34 @@ class FormTemplate extends Model
     }
 
     /**
+     * Vai buscar a estrutura atualmente ativa.
+     */
+    public function activeStructure(): HasOne
+    {
+        return $this->hasOne(FormTemplateStructure::class)
+            ->where('is_active', true);
+    }
+
+    /**
      * Accessor para o atributo 'structure'.
-     * Quando o frontend pedir $template->structure, devolve o array da estrutura mais recente.
+     * Quando o frontend pedir $template->structure, devolve o array da estrutura ativa
+     * e usa a mais recente apenas como fallback.
      */
     public function getStructureAttribute()
     {
-        // Carrega a relação se ainda não tiver sido carregada e devolve apenas o array da 'structure'
-        return $this->latestStructure ? $this->latestStructure->structure : [];
+        $activeStructure = $this->relationLoaded('activeStructure')
+            ? $this->activeStructure
+            : $this->activeStructure()->first();
+
+        if ($activeStructure) {
+            return $activeStructure->structure;
+        }
+
+        $latestStructure = $this->relationLoaded('latestStructure')
+            ? $this->latestStructure
+            : $this->latestStructure()->first();
+
+        return $latestStructure?->structure ?? [];
     }
 
     /**
@@ -60,6 +83,12 @@ class FormTemplate extends Model
     {
         return $this->belongsTo(User::class, 'created_by');
     }
+
+    public function folder(): BelongsTo
+    {
+        return $this->belongsTo(FormTemplateFolder::class, 'folder_id');
+    }
+
     /**
      * Relacionamento: Um template tem múltiplas submissões
      */
@@ -82,13 +111,10 @@ class FormTemplate extends Model
             // Elimina em cascata os registos das tabelas relacionadas antes de apagar o template pai
             $template->submissions()->delete();
             $template->validationSteps()->delete();
-            
-            // Se as estruturas não tiverem o cascade configurado na BD por algum motivo, 
+
+            // Se as estruturas não tiverem o cascade configurado na BD por algum motivo,
             // podes descomentar a linha abaixo para garantir pelo Eloquent:
             $template->structures()->delete();
         });
     }
 }
-
-
-   
