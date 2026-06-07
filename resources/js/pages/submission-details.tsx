@@ -31,7 +31,7 @@ interface FormSubmission {
     submitted_data: Record<string, any>;
     status: string;
     created_at: string;
-    formTemplate?: FormTemplate;
+    form_template?: FormTemplate;
     validationSteps?: FormValidationStep[];
     user?: User;
 }

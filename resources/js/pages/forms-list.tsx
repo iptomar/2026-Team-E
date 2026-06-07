@@ -1,4 +1,4 @@
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import {
     Plus,
     MoreVertical,
@@ -26,6 +26,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import type { UserRole } from '@/types/auth';
 
 interface Template {
     id: number;
@@ -46,7 +47,7 @@ interface FormSubmission {
     submitted_data: any;
     status: string;
     created_at: string;
-    formTemplate?: Template;
+    form_template?: Template;
     user?: {
         name: string;
     };
@@ -63,7 +64,7 @@ interface CardProps {
     createdAt: string;
     icon: React.ReactNode;
     showFillButton?: boolean;
-    onDelete: () => void;
+    onDelete?: () => void;
     onDuplicate?: () => void;
     onPreview: () => void;
     onEdit?: () => void;
@@ -129,15 +130,19 @@ function Card({
                             Pin
                         </DropdownMenuItem>
 
-                        <DropdownMenuSeparator />
+                        {onDelete && (
+                            <>
+                                <DropdownMenuSeparator />
 
-                        <DropdownMenuItem
-                            className="gap-2 text-red-600 focus:text-red-600"
-                            onClick={onDelete}
-                        >
-                            <Trash2 className="h-4 w-4" />
-                            Eliminar
-                        </DropdownMenuItem>
+                                <DropdownMenuItem
+                                    className="gap-2 text-red-600 focus:text-red-600"
+                                    onClick={onDelete}
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                    Eliminar
+                                </DropdownMenuItem>
+                            </>
+                        )}
                     </DropdownMenuContent>
                 </DropdownMenu>
             </div>
@@ -173,7 +178,7 @@ interface SubmissionCardProps {
     submittedAt: string;
     submittedBy: string;
     onViewDetails: () => void;
-    onDelete: () => void;
+    onDelete?: () => void;
 }
 
 function SubmissionCard({
@@ -196,23 +201,25 @@ function SubmissionCard({
                     <FileText className="h-5 w-5" />
                 </div>
 
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <button className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-600">
-                            <MoreVertical className="h-4 w-4" />
-                        </button>
-                    </DropdownMenuTrigger>
+                {onDelete && (
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <button className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-600">
+                                <MoreVertical className="h-4 w-4" />
+                            </button>
+                        </DropdownMenuTrigger>
 
-                    <DropdownMenuContent align="end" className="w-48">
-                        <DropdownMenuItem
-                            className="gap-2 text-red-600 focus:text-red-600"
-                            onClick={onDelete}
-                        >
-                            <Trash2 className="h-4 w-4" />
-                            Eliminar
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
+                        <DropdownMenuContent align="end" className="w-48">
+                            <DropdownMenuItem
+                                className="gap-2 text-red-600 focus:text-red-600"
+                                onClick={onDelete}
+                            >
+                                <Trash2 className="h-4 w-4" />
+                                Eliminar
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                )}
             </div>
 
             <div className="flex-1 mb-4">
@@ -395,6 +402,8 @@ function ErrorState({ message, onRetry }: { message: string; onRetry: () => void
 }
 
 export default function FormsList() {
+    const { auth } = usePage().props;
+    const isAdmin = (auth.user?.role as UserRole | undefined) === 'administrador';
     const [formularios, setFormularios] = useState<Template[]>([]);
     const [templates, setTemplates] = useState<FormSubmission[]>([]);
     const [loading, setLoading] = useState(true);
@@ -587,12 +596,14 @@ export default function FormsList() {
                         </p>
                     </div>
 
-                    <Link href="/builder">
-                        <Button className="gap-2 bg-indigo-600 text-white hover:bg-indigo-700">
-                            <Plus className="h-4 w-4" />
-                            Criar formulário
-                        </Button>
-                    </Link>
+                    {isAdmin && (
+                        <Link href="/builder">
+                            <Button className="gap-2 bg-indigo-600 text-white hover:bg-indigo-700">
+                                <Plus className="h-4 w-4" />
+                                Criar formulário
+                            </Button>
+                        </Link>
+                    )}
                 </div>
 
                 {/* Content */}
@@ -620,7 +631,11 @@ export default function FormsList() {
                                 {formulariosEmpty ? (
                                     <EmptyState
                                         title="Sem formulários ainda"
-                                        description="Clique em 'Criar formulário' para começar"
+                                        description={
+                                            isAdmin
+                                                ? "Clique em 'Criar formulário' para começar"
+                                                : 'Os formulários disponíveis aparecerão aqui'
+                                        }
                                     />
                                 ) : (
                                     <div className="flex snap-x gap-4 overflow-x-auto pb-2">
@@ -631,8 +646,10 @@ export default function FormsList() {
                                                 createdAt={template.created_at}
                                                 icon={<LayoutGrid className="h-5 w-5" />}
                                                 showFillButton
-                                                onDelete={() =>
-                                                    handleDeleteFormulario(template.id)
+                                                onDelete={
+                                                    isAdmin
+                                                        ? () => handleDeleteFormulario(template.id)
+                                                        : undefined
                                                 }
                                                 onPreview={() =>
                                                     handlePreviewFormulario(template)
@@ -640,11 +657,15 @@ export default function FormsList() {
                                                 onFill={() =>
                                                     handleFillForm(template.id)
                                                 }
-                                                onEdit={() =>
-                                                    handleEditTemplate(template.id)
+                                                onEdit={
+                                                    isAdmin
+                                                        ? () => handleEditTemplate(template.id)
+                                                        : undefined
                                                 }
-                                                onDuplicate={() =>
-                                                    handleDuplicateTemplate(template)
+                                                onDuplicate={
+                                                    isAdmin
+                                                        ? () => handleDuplicateTemplate(template)
+                                                        : undefined
                                                 }
                                             />
                                         ))}
@@ -678,7 +699,11 @@ export default function FormsList() {
                                                 submittedAt={submission.created_at}
                                                 submittedBy={submission.user?.name || 'Utilizador desconhecido'}
                                                 onViewDetails={() => handleViewSubmissionDetails(submission.id)}
-                                                onDelete={() => handleDeleteTemplate(submission.id)}
+                                                onDelete={
+                                                    isAdmin
+                                                        ? () => handleDeleteTemplate(submission.id)
+                                                        : undefined
+                                                }
                                             />
                                         ))}
                                     </div>

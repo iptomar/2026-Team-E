@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class UserManagementController extends Controller
 {
@@ -36,9 +38,21 @@ class UserManagementController extends Controller
         $validated = $request->validate([
             'name' => 'sometimes|required|string|max:255',
             'email' => 'sometimes|required|email|unique:users,email,' . $id,
+            'role' => ['sometimes', Rule::in(UserRole::values())],
             'department_id' => 'nullable|exists:departments,id',
             'cargo' => 'nullable|string|max:255',
         ]);
+
+        if (
+            isset($validated['role'])
+            && $validated['role'] !== UserRole::Admin->value
+            && $user->isAdmin()
+            && User::where('role', UserRole::Admin->value)->where('id', '!=', $user->id)->doesntExist()
+        ) {
+            return response()->json([
+                'error' => 'Não é possível remover o papel do último administrador.',
+            ], 422);
+        }
 
         $user->update($validated);
 

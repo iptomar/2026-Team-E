@@ -44,51 +44,51 @@ Route::put('/submissions/{id}', [FormSubmissionController::class, 'updateSubmiss
 Route::delete('/submissions/{id}', [FormSubmissionController::class, 'destroySubmission'])->middleware(['web', 'auth']);
 
 
-// Listar todas as labels disponíveis para o editor
-Route::get('/labels', [LabelController::class, 'index']); 
+Route::middleware(['web', 'auth', 'role:administrador'])->group(function () {
+    // Listar todas as labels disponíveis para o editor
+    Route::get('/labels', [LabelController::class, 'index']); 
 
-// Criar/Editar labels (Cargos/Departamentos)
-Route::post('/labels', [LabelController::class, 'store']);
-Route::put('/labels/{id}', [LabelController::class, 'update']);
-
-
-// Salvar todo o fluxo desenhado no React Flow de uma vez
-// Esse endpoint processa o JSON do canvas e sincroniza a tabela form_validation_steps
-Route::post('/templates/{templateId}/workflow', [FormController::class, 'syncWorkflow']);
-
-// Buscar o workflow de um template para carregar no editor
-Route::get('/templates/{templateId}/workflow', [FormController::class, 'getWorkflow']);
+    // Criar/Editar labels (Cargos/Departamentos)
+    Route::post('/labels', [LabelController::class, 'store']);
+    Route::put('/labels/{id}', [LabelController::class, 'update']);
 
 
-// ===== ROTAS DE GESTÃO DE DEPARTAMENTOS =====
-Route::get('/departments', [DepartmentController::class, 'index']);
-Route::get('/departments/{id}', [DepartmentController::class, 'show']);
-Route::post('/departments', [DepartmentController::class, 'store']);
-Route::put('/departments/{id}', [DepartmentController::class, 'update']);
-Route::delete('/departments/{id}', [DepartmentController::class, 'destroy']);
+    // Salvar todo o fluxo desenhado no React Flow de uma vez
+    // Esse endpoint processa o JSON do canvas e sincroniza a tabela form_validation_steps
+    Route::post('/templates/{templateId}/workflow', [FormController::class, 'syncWorkflow']);
+
+    // Buscar o workflow de um template para carregar no editor
+    Route::get('/templates/{templateId}/workflow', [FormController::class, 'getWorkflow']);
 
 
-// ===== ROTAS DE GESTÃO DE ROLES/LABELS/GRUPOS =====
-Route::get('/roles', [RoleController::class, 'index']);
-Route::get('/roles/{id}', [RoleController::class, 'show']);
-Route::post('/roles', [RoleController::class, 'store']);
-Route::put('/roles/{id}', [RoleController::class, 'update']);
-Route::delete('/roles/{id}', [RoleController::class, 'destroy']);
-
-// Adicionar/Remover utilizadores de roles
-Route::post('/roles/{id}/users', [RoleController::class, 'addUser']);
-Route::delete('/roles/{roleId}/users/{userId}', [RoleController::class, 'removeUser']);
+    // ===== ROTAS DE GESTÃO DE DEPARTAMENTOS =====
+    Route::get('/departments', [DepartmentController::class, 'index']);
+    Route::get('/departments/{id}', [DepartmentController::class, 'show']);
+    Route::post('/departments', [DepartmentController::class, 'store']);
+    Route::put('/departments/{id}', [DepartmentController::class, 'update']);
+    Route::delete('/departments/{id}', [DepartmentController::class, 'destroy']);
 
 
-// ===== ROTAS DE GESTÃO DE UTILIZADORES =====
-Route::get('/users-management', [UserManagementController::class, 'index']);
-Route::get('/users-management/{id}', [UserManagementController::class, 'show']);
-Route::put('/users-management/{id}', [UserManagementController::class, 'update']);
+    // ===== ROTAS DE GESTÃO DE ROLES/LABELS/GRUPOS =====
+    Route::get('/roles', [RoleController::class, 'index']);
+    Route::get('/roles/{id}', [RoleController::class, 'show']);
+    Route::post('/roles', [RoleController::class, 'store']);
+    Route::put('/roles/{id}', [RoleController::class, 'update']);
+    Route::delete('/roles/{id}', [RoleController::class, 'destroy']);
 
-// Adicionar/Remover labels de utilizadores
-Route::post('/users-management/{id}/labels', [UserManagementController::class, 'addLabel']);
-Route::delete('/users-management/{userId}/labels/{labelId}', [UserManagementController::class, 'removeLabel']);
+    // Adicionar/Remover utilizadores de roles
+    Route::post('/roles/{id}/users', [RoleController::class, 'addUser']);
+    Route::delete('/roles/{roleId}/users/{userId}', [RoleController::class, 'removeUser']);
 
-// Filtros
-Route::get('/users-management/department/{departmentId}', [UserManagementController::class, 'byDepartment']);
-Route::get('/users-management/label/{labelId}', [UserManagementController::class, 'byLabel']);
+
+    // ===== ROTAS DE GESTÃO DE UTILIZADORES =====
+    Route::get('/users-management', [UserManagementController::class, 'index']);
+    Route::get('/users-management/department/{departmentId}', [UserManagementController::class, 'byDepartment']);
+    Route::get('/users-management/label/{labelId}', [UserManagementController::class, 'byLabel']);
+    Route::get('/users-management/{id}', [UserManagementController::class, 'show']);
+    Route::put('/users-management/{id}', [UserManagementController::class, 'update']);
+
+    // Adicionar/Remover labels de utilizadores
+    Route::post('/users-management/{id}/labels', [UserManagementController::class, 'addLabel']);
+    Route::delete('/users-management/{userId}/labels/{labelId}', [UserManagementController::class, 'removeLabel']);
+});
