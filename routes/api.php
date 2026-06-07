@@ -1,19 +1,17 @@
 <?php
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\DepartmentController;
 use App\Http\Controllers\Api\FormController;
 use App\Http\Controllers\Api\FormSubmissionController;
 use App\Http\Controllers\Api\LabelController;
-use App\Http\Controllers\Api\DepartmentController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\UserManagementController;
-
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
-
 
 // Rota para guardar um novo template (Admin)
 Route::post('/templates', [FormController::class, 'storeTemplate']);
@@ -25,7 +23,10 @@ Route::get('/templates/{id}', [FormController::class, 'showTemplate']);
 Route::get('/templates', [FormController::class, 'indexTemplates']);
 Route::put('/templates/{id}', [FormController::class, 'updateTemplate']);
 Route::delete('/templates/{id}', [FormController::class, 'destroyTemplate']);
-
+Route::put('/templates/{id}/folder', [FormController::class, 'assignFolder']);
+Route::get('/template-folders', [FormController::class, 'indexFolders']);
+Route::post('/template-folders', [FormController::class, 'storeFolder']);
+Route::delete('/template-folders/{folderId}', [FormController::class, 'destroyFolder']);
 
 // Rota para listar o histórico de versões/estruturas de um template específico
 Route::get('/templates/{id}/structures', [FormController::class, 'indexStructures']);
