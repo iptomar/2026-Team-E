@@ -47,6 +47,9 @@ Route::delete('/submissions/{id}', [FormSubmissionController::class, 'destroySub
 // Rota para listar validações pendentes do utilizador autenticado
 Route::get('/validations', [FormSubmissionController::class, 'pendingValidations'])->middleware(['web', 'auth']);
 
+// Rota para validar (aprovar/rejeitar/informar) um passo de workflow
+Route::post('/submissions/{id}/validate', [FormSubmissionController::class, 'validateStep'])->middleware(['web', 'auth']);
+
 Route::middleware(['web', 'auth', 'role:administrador'])->group(function () {
     // Listar todas as labels disponíveis para o editor
     Route::get('/labels', [LabelController::class, 'index']); 

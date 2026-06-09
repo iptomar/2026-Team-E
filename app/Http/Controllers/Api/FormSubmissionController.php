@@ -31,16 +31,20 @@ class FormSubmissionController extends Controller
     /**
      * Mostra a submissão com o Template incluído
      */
-    public function showSubmission($id)
+    public function showSubmission(Request $request, $id)
     {
-        // O segredo está aqui: with() carrega a estrutura original + user + validation steps
         $submission = FormSubmission::with([
             'formTemplate',
             'formTemplate.validationSteps',
             'user'
         ])->findOrFail($id);
 
-        return response()->json($submission);
+        $user = $request->user();
+
+        $data = $submission->toArray();
+        $data['can_validate'] = $user ? $this->userCanValidateStep($submission, $user) : false;
+
+        return response()->json($data);
     }
 
     /**
@@ -133,6 +137,107 @@ class FormSubmissionController extends Controller
         })->values();
 
         return response()->json($pending);
+    }
+
+    /**
+     * Verifica se o utilizador pode validar o step atual de uma submissão
+     */
+    private function userCanValidateStep(FormSubmission $submission, $user): bool
+    {
+        $userLabelIds = $user->labels()->pluck('labels.id')->toArray();
+        if (empty($userLabelIds)) {
+            return false;
+        }
+
+        $template = $submission->formTemplate;
+        if (!$template) {
+            return false;
+        }
+
+        $validationSequence = $template->validation_sequence;
+        if (empty($validationSequence)) {
+            return false;
+        }
+
+        $stepIndex = $submission->current_step_index ?? 0;
+        if (!isset($validationSequence[$stepIndex])) {
+            return false;
+        }
+
+        $currentStep = $validationSequence[$stepIndex];
+        $stepLabels = $currentStep['labels'] ?? [];
+        $stepLabelIds = array_column($stepLabels, 'id');
+
+        return !empty(array_intersect($stepLabelIds, $userLabelIds));
+    }
+
+    /**
+     * Validar (aprovar/rejeitar/informar) o step atual de uma submissão
+     */
+    public function validateStep(Request $request, $id)
+    {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['error' => 'Não autenticado'], 401);
+        }
+
+        $validated = $request->validate([
+            'action' => 'required|in:approve,reject,informado',
+        ]);
+
+        $submission = FormSubmission::with('formTemplate')->findOrFail($id);
+
+        if ($submission->status !== 'pending') {
+            return response()->json(['error' => 'Submissão já não está pendente'], 422);
+        }
+
+        if (!$this->userCanValidateStep($submission, $user)) {
+            return response()->json(['error' => 'Não autorizado para validar este passo'], 403);
+        }
+
+        $template = $submission->formTemplate;
+        $validationSequence = $template->validation_sequence ?? [];
+        $stepIndex = $submission->current_step_index ?? 0;
+        $currentStep = $validationSequence[$stepIndex] ?? null;
+
+        if (!$currentStep) {
+            return response()->json(['error' => 'Passo inválido'], 422);
+        }
+
+        $stepType = $currentStep['type'] ?? 'approval';
+        $action = $validated['action'];
+
+        // Validar se a ação é compatível com o tipo de passo
+        if ($stepType === 'informar' && $action !== 'informado') {
+            return response()->json(['error' => 'Este passo só pode ser marcado como informado'], 422);
+        }
+        if ($stepType === 'approval' && !in_array($action, ['approve', 'reject'])) {
+            return response()->json(['error' => 'Ação inválida para este passo'], 422);
+        }
+
+        if ($action === 'reject') {
+            $submission->update(['status' => 'rejected']);
+        } else {
+            // approve ou informado — avançar para o próximo passo
+            $nextStepIndex = $stepIndex + 1;
+
+            if (!isset($validationSequence[$nextStepIndex])) {
+                // Era o último passo
+                $submission->update([
+                    'current_step_index' => $nextStepIndex,
+                    'status' => 'approved',
+                ]);
+            } else {
+                $submission->update([
+                    'current_step_index' => $nextStepIndex,
+                ]);
+            }
+        }
+
+        return response()->json([
+            'message' => 'Passo validado com sucesso!',
+            'data' => $submission->fresh()->load('formTemplate', 'user'),
+        ]);
     }
 
     /**
