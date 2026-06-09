@@ -44,6 +44,8 @@ Route::get('/submissions', [FormSubmissionController::class, 'indexSubmissions']
 Route::put('/submissions/{id}', [FormSubmissionController::class, 'updateSubmission'])->middleware(['web', 'auth']);
 Route::delete('/submissions/{id}', [FormSubmissionController::class, 'destroySubmission'])->middleware(['web', 'auth']);
 
+// Rota para listar validações pendentes do utilizador autenticado
+Route::get('/validations', [FormSubmissionController::class, 'pendingValidations'])->middleware(['web', 'auth']);
 
 Route::middleware(['web', 'auth', 'role:administrador'])->group(function () {
     // Listar todas as labels disponíveis para o editor

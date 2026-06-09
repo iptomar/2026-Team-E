@@ -86,6 +86,56 @@ class FormSubmissionController extends Controller
     }
 
     /**
+     * Listar submissões pendentes de validação para o utilizador autenticado
+     */
+    public function pendingValidations(Request $request)
+    {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['error' => 'Não autenticado'], 401);
+        }
+
+        // IDs dos labels do utilizador
+        $userLabelIds = $user->labels()->pluck('labels.id')->toArray();
+
+        if (empty($userLabelIds)) {
+            return response()->json([]);
+        }
+
+        // Buscar submissões pendentes com template
+        $submissions = FormSubmission::with(['formTemplate', 'user', 'formTemplate.creator'])
+            ->where('status', 'pending')
+            ->get();
+
+        // Filtrar: só as que têm um step atual cujos labels correspondem aos do user
+        $pending = $submissions->filter(function ($submission) use ($userLabelIds) {
+            $template = $submission->formTemplate;
+            if (!$template) {
+                return false;
+            }
+
+            $validationSequence = $template->validation_sequence;
+            if (empty($validationSequence)) {
+                return false;
+            }
+
+            $stepIndex = $submission->current_step_index ?? 0;
+            if (!isset($validationSequence[$stepIndex])) {
+                return false;
+            }
+
+            $currentStep = $validationSequence[$stepIndex];
+            $stepLabels = $currentStep['labels'] ?? [];
+
+            $stepLabelIds = array_column($stepLabels, 'id');
+
+            return !empty(array_intersect($stepLabelIds, $userLabelIds));
+        })->values();
+
+        return response()->json($pending);
+    }
+
+    /**
      * Eliminar uma submissão
      */
     public function destroySubmission($id)

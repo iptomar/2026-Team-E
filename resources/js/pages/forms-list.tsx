@@ -12,6 +12,8 @@ import {
     ClipboardList,
     Search,
     X,
+    ShieldCheck,
+    CheckCircle,
 } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
@@ -48,6 +50,7 @@ interface FormSubmission {
     user_id: number;
     submitted_data: any;
     status: string;
+    current_step_index?: number;
     created_at: string;
     form_template?: Template;
     user?: {
@@ -252,6 +255,75 @@ function SubmissionCard({
     );
 }
 
+function getCurrentStepName(submission: FormSubmission): string {
+    const sequence = submission.form_template?.validation_sequence;
+    if (!sequence || !Array.isArray(sequence)) return 'Validação';
+    const stepIndex = submission.current_step_index ?? 0;
+    const step = sequence[stepIndex];
+    return step?.name || `Passo ${stepIndex + 1}`;
+}
+
+interface ValidationCardProps {
+    formName: string;
+    submittedAt: string;
+    submittedBy: string;
+    stepName: string;
+    onValidate: () => void;
+}
+
+function ValidationCard({
+    formName,
+    submittedAt,
+    submittedBy,
+    stepName,
+    onValidate,
+}: ValidationCardProps) {
+    const formattedDate = new Date(submittedAt).toLocaleDateString('pt-BR', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+    });
+
+    return (
+        <div className="group w-[280px] shrink-0 snap-start rounded-2xl border border-amber-200 bg-white p-4 transition-all duration-200 hover:-translate-y-1 hover:border-amber-300 hover:shadow-md">
+            <div className="mb-3 flex items-start justify-between">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-amber-50 to-orange-50 text-amber-600">
+                    <ShieldCheck className="h-5 w-5" />
+                </div>
+            </div>
+
+            <div className="flex-1 mb-4">
+                <h3 className="mb-1 text-sm font-semibold text-gray-900">
+                    {formName}
+                </h3>
+
+                <p className="text-xs text-gray-500">
+                    {formattedDate}
+                </p>
+
+                <p className="mt-2 text-xs text-gray-600">
+                    Submetido por: <span className="font-medium">{submittedBy}</span>
+                </p>
+
+                <p className="mt-1 text-xs text-amber-700">
+                    Passo atual: <span className="font-medium">{stepName}</span>
+                </p>
+            </div>
+
+            <div className="border-t border-amber-100 pt-4">
+                <Button
+                    size="sm"
+                    className="w-full gap-2 bg-amber-600 text-xs text-white hover:bg-amber-700"
+                    onClick={onValidate}
+                >
+                    <CheckCircle className="h-4 w-4" />
+                    Validar
+                </Button>
+            </div>
+        </div>
+    );
+}
+
 function PreviewModal({
     open,
     onClose,
@@ -408,6 +480,7 @@ export default function FormsList() {
     const isAdmin = (auth.user?.role as UserRole | undefined) === 'administrador';
     const [formularios, setFormularios] = useState<Template[]>([]);
     const [templates, setTemplates] = useState<FormSubmission[]>([]);
+    const [validations, setValidations] = useState<FormSubmission[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -435,6 +508,26 @@ export default function FormsList() {
             setFormularios(sorted);
         } catch (err) {
             console.error('Error fetching forms:', err);
+        }
+    }, []);
+
+    const fetchValidations = useCallback(async () => {
+        try {
+            const response = await fetch('/api/validations', {
+                headers: {
+                    Accept: 'application/json',
+                },
+                credentials: 'same-origin',
+            });
+
+            if (!response.ok) {
+                throw new Error('Falha ao carregar validações');
+            }
+
+            const data = await response.json();
+            setValidations(data);
+        } catch (err) {
+            console.error('Error fetching validations:', err);
         }
     }, []);
 
@@ -467,7 +560,7 @@ export default function FormsList() {
         setError(null);
 
         try {
-            await Promise.all([fetchFormularios(), fetchTemplates()]);
+            await Promise.all([fetchFormularios(), fetchTemplates(), fetchValidations()]);
         } catch {
             setError('Erro ao carregar dados');
         } finally {
@@ -573,6 +666,10 @@ export default function FormsList() {
         router.visit(`/submission-details?id=${submissionId}`);
     };
 
+    const handleValidate = (submissionId: number) => {
+        router.visit(`/submission-details?id=${submissionId}`);
+    };
+
     const normalizedSearch = searchTerm.trim().toLowerCase();
 
     const filteredFormularios = formularios.filter((template) => {
@@ -611,8 +708,28 @@ export default function FormsList() {
         return searchableContent.includes(normalizedSearch);
     });
 
+    const filteredValidations = validations.filter((submission) => {
+        if (!normalizedSearch) {
+            return true;
+        }
+
+        const searchableContent = [
+            submission.form_template?.name,
+            submission.user?.name,
+            submission.status,
+            `submissão ${submission.id}`,
+            new Date(submission.created_at).toLocaleDateString('pt-BR'),
+        ]
+            .filter(Boolean)
+            .join(' ')
+            .toLowerCase();
+
+        return searchableContent.includes(normalizedSearch);
+    });
+
     const formulariosEmpty = filteredFormularios.length === 0;
     const templatesEmpty = filteredTemplates.length === 0;
+    const validationsEmpty = filteredValidations.length === 0;
     const hasSearch = normalizedSearch.length > 0;
 
     return (
@@ -700,6 +817,9 @@ export default function FormsList() {
                                     <div className="rounded-full bg-emerald-50 px-4 py-2 font-medium text-emerald-700">
                                         Submissões: {filteredTemplates.length}
                                     </div>
+                                    <div className="rounded-full bg-amber-50 px-4 py-2 font-medium text-amber-700">
+                                        Validações pendentes: {filteredValidations.length}
+                                    </div>
                                     {hasSearch && (
                                         <div className="rounded-full bg-slate-100 px-4 py-2 font-medium text-slate-700">
                                             Pesquisa: {searchTerm}
@@ -763,6 +883,43 @@ export default function FormsList() {
                                                         ? () => handleDuplicateTemplate(template)
                                                         : undefined
                                                 }
+                                            />
+                                        ))}
+                                    </div>
+                                )}
+                            </section>
+
+                            {/* Validações Pendentes */}
+                            <section>
+                                <div className="mb-5">
+                                    <h2 className="text-lg font-semibold text-gray-900">
+                                        Validações Pendentes
+                                    </h2>
+
+                                    <p className="text-sm text-gray-500">
+                                        Submissões que precisam da sua validação
+                                    </p>
+                                </div>
+
+                                {validationsEmpty ? (
+                                    <EmptyState
+                                        title={hasSearch ? 'Nenhuma validação encontrada' : 'Sem validações pendentes'}
+                                        description={
+                                            hasSearch
+                                                ? 'Tenta outro termo para encontrar validações pendentes.'
+                                                : 'Quando uma submissão precisar da sua validação, aparecerá aqui'
+                                        }
+                                    />
+                                ) : (
+                                    <div className="flex snap-x gap-4 overflow-x-auto pb-2">
+                                        {filteredValidations.map((submission) => (
+                                            <ValidationCard
+                                                key={submission.id}
+                                                formName={submission.form_template?.name || `Submissão #${submission.id}`}
+                                                submittedAt={submission.created_at}
+                                                submittedBy={submission.user?.name || 'Utilizador desconhecido'}
+                                                stepName={getCurrentStepName(submission)}
+                                                onValidate={() => handleValidate(submission.id)}
                                             />
                                         ))}
                                     </div>
