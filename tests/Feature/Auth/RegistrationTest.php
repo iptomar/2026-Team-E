@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\UserRole;
 use Laravel\Fortify\Features;
 
 beforeEach(function () {
@@ -21,5 +22,10 @@ test('new users can register', function () {
     ]);
 
     $this->assertAuthenticated();
-    $response->assertRedirect(route('dashboard', absolute: false));
+    $response->assertRedirect(route('forms-list', absolute: false));
+
+    $this->assertDatabaseHas('users', [
+        'email' => 'test@example.com',
+        'role' => UserRole::User->value,
+    ]);
 });

@@ -1,4 +1,4 @@
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import {
     Plus,
     MoreVertical,
@@ -10,6 +10,8 @@ import {
     FileText,
     LayoutGrid,
     ClipboardList,
+    Search,
+    X,
 } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
@@ -26,6 +28,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import type { UserRole } from '@/types/auth';
 
 interface Template {
     id: number;
@@ -46,7 +49,7 @@ interface FormSubmission {
     submitted_data: any;
     status: string;
     created_at: string;
-    formTemplate?: Template;
+    form_template?: Template;
     user?: {
         name: string;
     };
@@ -63,7 +66,7 @@ interface CardProps {
     createdAt: string;
     icon: React.ReactNode;
     showFillButton?: boolean;
-    onDelete: () => void;
+    onDelete?: () => void;
     onDuplicate?: () => void;
     onPreview: () => void;
     onEdit?: () => void;
@@ -129,15 +132,19 @@ function Card({
                             Pin
                         </DropdownMenuItem>
 
-                        <DropdownMenuSeparator />
+                        {onDelete && (
+                            <>
+                                <DropdownMenuSeparator />
 
-                        <DropdownMenuItem
-                            className="gap-2 text-red-600 focus:text-red-600"
-                            onClick={onDelete}
-                        >
-                            <Trash2 className="h-4 w-4" />
-                            Eliminar
-                        </DropdownMenuItem>
+                                <DropdownMenuItem
+                                    className="gap-2 text-red-600 focus:text-red-600"
+                                    onClick={onDelete}
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                    Eliminar
+                                </DropdownMenuItem>
+                            </>
+                        )}
                     </DropdownMenuContent>
                 </DropdownMenu>
             </div>
@@ -164,6 +171,83 @@ function Card({
                     </Button>
                 </div>
             )}
+        </div>
+    );
+}
+
+interface SubmissionCardProps {
+    formName: string;
+    submittedAt: string;
+    submittedBy: string;
+    onViewDetails: () => void;
+    onDelete?: () => void;
+}
+
+function SubmissionCard({
+    formName,
+    submittedAt,
+    submittedBy,
+    onViewDetails,
+    onDelete,
+}: SubmissionCardProps) {
+    const formattedDate = new Date(submittedAt).toLocaleDateString('pt-BR', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+    });
+
+    return (
+        <div className="group w-[280px] shrink-0 snap-start rounded-2xl border border-gray-200 bg-white p-4 transition-all duration-200 hover:-translate-y-1 hover:border-indigo-300 hover:shadow-md">
+            <div className="mb-3 flex items-start justify-between">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-50 to-purple-50 text-indigo-600">
+                    <FileText className="h-5 w-5" />
+                </div>
+
+                {onDelete && (
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <button className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-600">
+                                <MoreVertical className="h-4 w-4" />
+                            </button>
+                        </DropdownMenuTrigger>
+
+                        <DropdownMenuContent align="end" className="w-48">
+                            <DropdownMenuItem
+                                className="gap-2 text-red-600 focus:text-red-600"
+                                onClick={onDelete}
+                            >
+                                <Trash2 className="h-4 w-4" />
+                                Eliminar
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                )}
+            </div>
+
+            <div className="flex-1 mb-4">
+                <h3 className="mb-1 text-sm font-semibold text-gray-900">
+                    {formName}
+                </h3>
+
+                <p className="text-xs text-gray-500">
+                    {formattedDate}
+                </p>
+
+                <p className="mt-2 text-xs text-gray-600">
+                    Submetido por: <span className="font-medium">{submittedBy}</span>
+                </p>
+            </div>
+
+            <div className="border-t border-gray-100 pt-4">
+                <Button
+                    size="sm"
+                    className="w-full gap-2 bg-indigo-600 text-xs text-white hover:bg-indigo-700"
+                    onClick={onViewDetails}
+                >
+                    <Eye className="h-4 w-4" />
+                    Ver detalhes
+                </Button>
+            </div>
         </div>
     );
 }
@@ -320,8 +404,11 @@ function ErrorState({ message, onRetry }: { message: string; onRetry: () => void
 }
 
 export default function FormsList() {
+    const { auth } = usePage().props;
+    const isAdmin = (auth.user?.role as UserRole | undefined) === 'administrador';
     const [formularios, setFormularios] = useState<Template[]>([]);
     const [templates, setTemplates] = useState<FormSubmission[]>([]);
+    const [searchTerm, setSearchTerm] = useState('');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [previewData, setPreviewData] = useState<PreviewData | null>(null);
@@ -465,9 +552,9 @@ export default function FormsList() {
     const handlePreviewTemplate = (submission: FormSubmission) => {
         setPreviewData({
             type: 'template',
-            name: submission.formTemplate?.name || `Submissão #${submission.id}`,
+            name: submission.form_template?.name || `Submissão #${submission.id}`,
             data: {
-                structure: submission.formTemplate?.structure || [],
+                structure: submission.form_template?.structure || [],
                 submitted_data: submission.submitted_data,
             },
         });
@@ -482,8 +569,51 @@ export default function FormsList() {
         router.visit(`/preencher-formularios?templateId=${templateId}`);
     };
 
-    const formulariosEmpty = formularios.length === 0;
-    const templatesEmpty = templates.length === 0;
+    const handleViewSubmissionDetails = (submissionId: number) => {
+        router.visit(`/submission-details?id=${submissionId}`);
+    };
+
+    const normalizedSearch = searchTerm.trim().toLowerCase();
+
+    const filteredFormularios = formularios.filter((template) => {
+        if (!normalizedSearch) {
+            return true;
+        }
+
+        const searchableContent = [
+            template.name,
+            template.creator?.name,
+            new Date(template.created_at).toLocaleDateString('pt-BR'),
+        ]
+            .filter(Boolean)
+            .join(' ')
+            .toLowerCase();
+
+        return searchableContent.includes(normalizedSearch);
+    });
+
+    const filteredTemplates = templates.filter((submission) => {
+        if (!normalizedSearch) {
+            return true;
+        }
+
+        const searchableContent = [
+            submission.form_template?.name,
+            submission.user?.name,
+            submission.status,
+            `submissão ${submission.id}`,
+            new Date(submission.created_at).toLocaleDateString('pt-BR'),
+        ]
+            .filter(Boolean)
+            .join(' ')
+            .toLowerCase();
+
+        return searchableContent.includes(normalizedSearch);
+    });
+
+    const formulariosEmpty = filteredFormularios.length === 0;
+    const templatesEmpty = filteredTemplates.length === 0;
+    const hasSearch = normalizedSearch.length > 0;
 
     return (
         <>
@@ -508,12 +638,14 @@ export default function FormsList() {
                         </p>
                     </div>
 
-                    <Link href="/builder">
-                        <Button className="gap-2 bg-indigo-600 text-white hover:bg-indigo-700">
-                            <Plus className="h-4 w-4" />
-                            Criar formulário
-                        </Button>
-                    </Link>
+                    {isAdmin && (
+                        <Link href="/builder">
+                            <Button className="gap-2 bg-indigo-600 text-white hover:bg-indigo-700">
+                                <Plus className="h-4 w-4" />
+                                Criar formulário
+                            </Button>
+                        </Link>
+                    )}
                 </div>
 
                 {/* Content */}
@@ -524,6 +656,58 @@ export default function FormsList() {
                         <ErrorState message={error} onRetry={loadData} />
                     ) : (
                         <div className="space-y-10">
+                            <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+                                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                                    <div>
+                                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-600">
+                                            Pesquisa Global
+                                        </p>
+                                        <h2 className="mt-1 text-lg font-semibold text-slate-900">
+                                            Encontra formulários e submissões
+                                        </h2>
+                                        <p className="mt-1 text-sm text-slate-500">
+                                            Pesquisa por nome do formulário, utilizador, data ou submissão.
+                                        </p>
+                                    </div>
+
+                                    <div className="w-full lg:max-w-xl">
+                                        <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 shadow-inner shadow-slate-100">
+                                            <Search className="h-4 w-4 shrink-0 text-slate-400" />
+                                            <input
+                                                type="text"
+                                                value={searchTerm}
+                                                onChange={(event) => setSearchTerm(event.target.value)}
+                                                placeholder="Pesquisar formulários e histórico..."
+                                                className="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400"
+                                            />
+                                            {hasSearch && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setSearchTerm('')}
+                                                    className="flex h-8 w-8 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-200 hover:text-slate-600"
+                                                >
+                                                    <X className="h-4 w-4" />
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="mt-4 flex flex-wrap gap-3 text-sm">
+                                    <div className="rounded-full bg-indigo-50 px-4 py-2 font-medium text-indigo-700">
+                                        Formulários: {filteredFormularios.length}
+                                    </div>
+                                    <div className="rounded-full bg-emerald-50 px-4 py-2 font-medium text-emerald-700">
+                                        Submissões: {filteredTemplates.length}
+                                    </div>
+                                    {hasSearch && (
+                                        <div className="rounded-full bg-slate-100 px-4 py-2 font-medium text-slate-700">
+                                            Pesquisa: {searchTerm}
+                                        </div>
+                                    )}
+                                </div>
+                            </section>
+
                             {/* Formulários - from /api/templates */}
                             <section>
                                 <div className="mb-5 flex items-center justify-between">
@@ -540,20 +724,28 @@ export default function FormsList() {
 
                                 {formulariosEmpty ? (
                                     <EmptyState
-                                        title="Sem formulários ainda"
-                                        description="Clique em 'Criar formulário' para começar"
+                                        title={hasSearch ? 'Nenhum formulário encontrado' : 'Sem formulários ainda'}
+                                        description={
+                                            hasSearch
+                                                ? 'Tenta outro termo para encontrar formulários disponíveis.'
+                                                : isAdmin
+                                                    ? "Clique em 'Criar formulário' para começar"
+                                                    : 'Os formulários disponíveis aparecerão aqui'
+                                        }
                                     />
                                 ) : (
                                     <div className="flex snap-x gap-4 overflow-x-auto pb-2">
-                                        {formularios.map((template) => (
+                                        {filteredFormularios.map((template) => (
                                             <Card
                                                 key={template.id}
                                                 name={template.name}
                                                 createdAt={template.created_at}
                                                 icon={<LayoutGrid className="h-5 w-5" />}
                                                 showFillButton
-                                                onDelete={() =>
-                                                    handleDeleteFormulario(template.id)
+                                                onDelete={
+                                                    isAdmin
+                                                        ? () => handleDeleteFormulario(template.id)
+                                                        : undefined
                                                 }
                                                 onPreview={() =>
                                                     handlePreviewFormulario(template)
@@ -561,11 +753,15 @@ export default function FormsList() {
                                                 onFill={() =>
                                                     handleFillForm(template.id)
                                                 }
-                                                onEdit={() =>
-                                                    handleEditTemplate(template.id)
+                                                onEdit={
+                                                    isAdmin
+                                                        ? () => handleEditTemplate(template.id)
+                                                        : undefined
                                                 }
-                                                onDuplicate={() =>
-                                                    handleDuplicateTemplate(template)
+                                                onDuplicate={
+                                                    isAdmin
+                                                        ? () => handleDuplicateTemplate(template)
+                                                        : undefined
                                                 }
                                             />
                                         ))}
@@ -573,7 +769,7 @@ export default function FormsList() {
                                 )}
                             </section>
 
-                            {/* Templates - from /api/submissions */}
+                            {/* Histórico - Submissões de formulários */}
                             <section>
                                 <div className="mb-5">
                                     <h2 className="text-lg font-semibold text-gray-900">
@@ -587,22 +783,26 @@ export default function FormsList() {
 
                                 {templatesEmpty ? (
                                     <EmptyState
-                                        title="Sem templates ainda"
-                                        description="Crie templates no builder para reutilizar"
+                                        title={hasSearch ? 'Nenhuma submissão encontrada' : 'Sem submissões ainda'}
+                                        description={
+                                            hasSearch
+                                                ? 'Tenta outro termo para encontrar formulários submetidos.'
+                                                : 'Os formulários preenchidos aparecerão aqui'
+                                        }
                                     />
                                 ) : (
                                     <div className="flex snap-x gap-4 overflow-x-auto pb-2">
-                                        {templates.map((submission) => (
-                                            <Card
+                                        {filteredTemplates.map((submission) => (
+                                            <SubmissionCard
                                                 key={submission.id}
-                                                name={submission.formTemplate?.name || `Submissão #${submission.id}`}
-                                                createdAt={submission.created_at}
-                                                icon={<FileText className="h-5 w-5" />}
-                                                onDelete={() =>
-                                                    handleDeleteTemplate(submission.id)
-                                                }
-                                                onPreview={() =>
-                                                    handlePreviewTemplate(submission)
+                                                formName={submission.form_template?.name || `Submissão #${submission.id}`}
+                                                submittedAt={submission.created_at}
+                                                submittedBy={submission.user?.name || 'Utilizador desconhecido'}
+                                                onViewDetails={() => handleViewSubmissionDetails(submission.id)}
+                                                onDelete={
+                                                    isAdmin
+                                                        ? () => handleDeleteTemplate(submission.id)
+                                                        : undefined
                                                 }
                                             />
                                         ))}

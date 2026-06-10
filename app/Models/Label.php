@@ -13,9 +13,6 @@ class Label extends Model
 
     protected $fillable = [
         'name',
-        'access_level',
-        'department_id',
-        'cargo',
         'description',
     ];
 

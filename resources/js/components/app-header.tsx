@@ -1,7 +1,7 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
     BookOpen,
-    ClipboardList,
+    ClipboardCheck,
     CopyPlus,
     DraftingCompass,
     FileText,
@@ -9,6 +9,7 @@ import {
     GitBranch,
     Menu,
     Search,
+    Shield,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import AppLogoIcon from '@/components/app-logo-icon';
@@ -44,38 +45,69 @@ import { useInitials } from '@/hooks/use-initials';
 import { cn, toUrl } from '@/lib/utils';
 import { dashboard, builder, workflow, formsList } from '@/routes';
 import type { BreadcrumbItem, NavItem } from '@/types';
+import type { UserRole } from '@/types/auth';
 
 type Props = {
     breadcrumbs?: BreadcrumbItem[];
 };
 
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Canvas',
-        href: builder(),
-        icon: DraftingCompass,
-    },
-    {
-        title: 'Workflows',
-        href: workflow(),
-        icon: GitBranch,
-    },
-    {
-        title: 'Templates',
-        href: dashboard(),
-        icon: CopyPlus,
-    },
-    {
-        title: 'Formulários',
-        href: formsList(),
-        icon: FileText,
-    },
-    {
-        title: 'Preencher',
-        href: '/preencher-formularios',
-        icon: ClipboardList,
-    },
-];
+const getHomePath = (role?: UserRole) =>
+    role === 'administrador' ? '/admin-panel' : '/forms-list';
+
+const getMainNavItems = (role?: UserRole): NavItem[] => {
+    if (role === 'administrador') {
+        return [
+            {
+                title: 'Administração',
+                href: '/admin-panel',
+                icon: Shield,
+            },
+            {
+                title: 'Templates',
+                href: dashboard(),
+                icon: CopyPlus,
+            },
+            {
+                title: 'Canvas',
+                href: builder(),
+                icon: DraftingCompass,
+            },
+            {
+                title: 'Workflows',
+                href: workflow(),
+                icon: GitBranch,
+            },
+            {
+                title: 'Formulários',
+                href: formsList(),
+                icon: FileText,
+            },
+        ];
+    }
+
+    if (role === 'validador') {
+        return [
+            {
+                title: 'Formulários',
+                href: formsList(),
+                icon: FileText,
+            },
+            {
+                title: 'Aprovações',
+                href: '/workflow-approvals',
+                icon: ClipboardCheck,
+            },
+        ];
+    }
+
+    return [
+        {
+            title: 'Formulários',
+            href: formsList(),
+            icon: FileText,
+        },
+    ];
+};
 
 const rightNavItems: NavItem[] = [
     {
@@ -96,6 +128,8 @@ const activeItemStyles =
 export function AppHeader({ breadcrumbs = [] }: Props) {
     const page = usePage();
     const { auth } = page.props;
+    const role = auth.user?.role;
+    const mainNavItems = getMainNavItems(role);
     const getInitials = useInitials();
     const { isCurrentUrl, whenCurrentUrl } = useCurrentUrl();
 
@@ -165,7 +199,7 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                     </div>
 
                     <Link
-                        href={dashboard()}
+                        href={getHomePath(role)}
                         prefetch
                         className="flex items-center space-x-2"
                     >

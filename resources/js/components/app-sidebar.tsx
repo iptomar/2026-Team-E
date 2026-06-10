@@ -1,5 +1,5 @@
-import { Link } from '@inertiajs/react';
-import { BookOpen, ClipboardList, FolderGit2, LayoutGrid } from 'lucide-react';
+import { Link, usePage } from '@inertiajs/react';
+import { BookOpen, ClipboardCheck, FileText, FolderGit2, GitBranch, LayoutGrid, Shield } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -13,26 +13,67 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { dashboard, builder } from '@/routes';
+import { dashboard, builder, formsList, workflow } from '@/routes';
 import type { NavItem } from '@/types';
+import type { UserRole } from '@/types/auth';
 
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Canvas',
-        href: builder(),
-        icon: LayoutGrid,
-    },
-    {
-        title: 'Templates',
-        href: dashboard(),
-        icon: LayoutGrid,
-    },
-    {
-        title: 'Preencher',
-        href: '/preencher-formularios',
-        icon: ClipboardList,
-    },
-];
+const getHomePath = (role?: UserRole) =>
+    role === 'administrador' ? '/admin-panel' : '/forms-list';
+
+const getMainNavItems = (role?: UserRole): NavItem[] => {
+    if (role === 'administrador') {
+        return [
+            {
+                title: 'Administração',
+                href: '/admin-panel',
+                icon: Shield,
+            },
+            {
+                title: 'Templates',
+                href: dashboard(),
+                icon: LayoutGrid,
+            },
+            {
+                title: 'Canvas',
+                href: builder(),
+                icon: LayoutGrid,
+            },
+            {
+                title: 'Workflows',
+                href: workflow(),
+                icon: GitBranch,
+            },
+            {
+                title: 'Formulários',
+                href: formsList(),
+                icon: FileText,
+            },
+        ];
+    }
+
+    if (role === 'validador') {
+        return [
+            {
+                title: 'Formulários',
+                href: formsList(),
+                icon: FileText,
+            },
+            {
+                title: 'Aprovações',
+                href: '/workflow-approvals',
+                icon: ClipboardCheck,
+            },
+        ];
+    }
+
+    return [
+        {
+            title: 'Formulários',
+            href: formsList(),
+            icon: FileText,
+        },
+    ];
+};
 
 const footerNavItems: NavItem[] = [
     {
@@ -48,13 +89,17 @@ const footerNavItems: NavItem[] = [
 ];
 
 export function AppSidebar() {
+    const { auth } = usePage().props;
+    const role = auth.user?.role;
+    const mainNavItems = getMainNavItems(role);
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
-                            <Link href={dashboard()} prefetch>
+                            <Link href={getHomePath(role)} prefetch>
                                 <AppLogo />
                             </Link>
                         </SidebarMenuButton>

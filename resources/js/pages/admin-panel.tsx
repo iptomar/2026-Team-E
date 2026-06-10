@@ -28,18 +28,53 @@ interface Label {
     users_count?: number;
 }
 
+type UserRole = 'administrador' | 'validador' | 'utilizador';
+
 interface User {
     id: number;
     name: string;
     email: string;
+    role: UserRole;
     department_id: number | null;
     cargo: string | null;
     department?: Department;
     labels?: Label[];
 }
 
+const roleLabels: Record<UserRole, string> = {
+    administrador: 'Administrador',
+    validador: 'Validador',
+    utilizador: 'Utilizador',
+};
+
+const roleStyles: Record<UserRole, string> = {
+    administrador: 'border-red-200 bg-red-50 text-red-700',
+    validador: 'border-yellow-200 bg-yellow-50 text-yellow-700',
+    utilizador: 'border-green-200 bg-green-50 text-green-700',
+};
+
+const getCsrfToken = () =>
+    document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '';
+
+const apiFetch = (url: string, options: RequestInit = {}) => {
+    const method = (options.method ?? 'GET').toUpperCase();
+    const headers = new Headers(options.headers);
+
+    headers.set('Accept', 'application/json');
+
+    if (method !== 'GET' && method !== 'HEAD') {
+        headers.set('X-CSRF-TOKEN', getCsrfToken());
+    }
+
+    return fetch(url, {
+        ...options,
+        credentials: 'same-origin',
+        headers,
+    });
+};
+
 export default function AdminPanel() {
-    const [activeTab, setActiveTab] = useState<'departments' | 'labels' | 'users'>('departments');
+    const [activeTab, setActiveTab] = useState<'departments' | 'labels' | 'users'>('users');
     const [departments, setDepartments] = useState<Department[]>([]);
     const [labels, setLabels] = useState<Label[]>([]);
     const [users, setUsers] = useState<User[]>([]);
@@ -59,9 +94,9 @@ export default function AdminPanel() {
     // Carregar dados
     useEffect(() => {
         Promise.all([
-            fetch('/api/departments').then(r => r.json()),
-            fetch('/api/roles').then(r => r.json()),
-            fetch('/api/users-management').then(r => r.json()),
+            apiFetch('/api/departments').then(r => r.json()),
+            apiFetch('/api/roles').then(r => r.json()),
+            apiFetch('/api/users-management').then(r => r.json()),
         ])
             .then(([depts, lbls, usrs]) => {
                 setDepartments(depts);
@@ -76,7 +111,7 @@ export default function AdminPanel() {
         if (!newDept.name.trim()) return;
 
         try {
-            const response = await fetch('/api/departments', {
+            const response = await apiFetch('/api/departments', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(newDept),
@@ -105,7 +140,7 @@ export default function AdminPanel() {
                 description: newLabel.description || null,
             };
 
-            const response = await fetch('/api/roles', {
+            const response = await apiFetch('/api/roles', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),
@@ -132,7 +167,7 @@ export default function AdminPanel() {
         if (!window.confirm('Tem a certeza que deseja eliminar este departamento?')) return;
 
         try {
-            const response = await fetch(`/api/departments/${id}`, {
+            const response = await apiFetch(`/api/departments/${id}`, {
                 method: 'DELETE',
             });
 
@@ -148,7 +183,7 @@ export default function AdminPanel() {
         if (!window.confirm('Tem a certeza que deseja eliminar este grupo?')) return;
 
         try {
-            const response = await fetch(`/api/roles/${id}`, {
+            const response = await apiFetch(`/api/roles/${id}`, {
                 method: 'DELETE',
             });
 
@@ -157,6 +192,27 @@ export default function AdminPanel() {
             }
         } catch (error) {
             console.error('Erro ao eliminar label:', error);
+        }
+    };
+
+    const handleUpdateUserRole = async (userId: number, role: UserRole) => {
+        try {
+            const response = await apiFetch(`/api/users-management/${userId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ role }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                window.alert(data.error || 'Erro ao atualizar papel do utilizador');
+                return;
+            }
+
+            setUsers(users.map(user => user.id === userId ? data.data : user));
+        } catch (error) {
+            console.error('Erro ao atualizar papel do utilizador:', error);
         }
     };
 
@@ -448,6 +504,9 @@ export default function AdminPanel() {
                                                     Email
                                                 </th>
                                                 <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
+                                                    Papel
+                                                </th>
+                                                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
                                                     Departamento
                                                 </th>
                                                 <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
@@ -463,6 +522,19 @@ export default function AdminPanel() {
                                                 <tr key={user.id} className="hover:bg-gray-50 transition">
                                                     <td className="px-6 py-4 text-sm text-gray-900">{user.name}</td>
                                                     <td className="px-6 py-4 text-sm text-gray-600">{user.email}</td>
+                                                    <td className="px-6 py-4 text-sm">
+                                                        <select
+                                                            value={user.role}
+                                                            onChange={(e) => handleUpdateUserRole(user.id, e.target.value as UserRole)}
+                                                            className={`rounded-md border px-2 py-1 text-xs font-medium ${roleStyles[user.role]}`}
+                                                        >
+                                                            {Object.entries(roleLabels).map(([role, label]) => (
+                                                                <option key={role} value={role}>
+                                                                    {label}
+                                                                </option>
+                                                            ))}
+                                                        </select>
+                                                    </td>
                                                     <td className="px-6 py-4 text-sm text-gray-600">
                                                         {user.department?.name || '-'}
                                                     </td>
@@ -499,4 +571,11 @@ export default function AdminPanel() {
     );
 }
 
-AdminPanel.layout = (page: React.ReactNode) => page;
+AdminPanel.layout = {
+    breadcrumbs: [
+        {
+            title: 'Painel de Administração',
+            href: '/admin-panel',
+        },
+    ],
+};
