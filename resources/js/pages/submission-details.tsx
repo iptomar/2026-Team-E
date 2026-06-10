@@ -1,5 +1,5 @@
 import { Head, router } from '@inertiajs/react';
-import { ArrowLeft, AlertCircle } from 'lucide-react';
+import { ArrowLeft, AlertCircle, CheckCircle, XCircle, Info, Loader } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 
@@ -30,16 +30,19 @@ interface FormSubmission {
     user_id: number;
     submitted_data: Record<string, any>;
     status: string;
+    current_step_index?: number;
     created_at: string;
     form_template?: FormTemplate;
     validationSteps?: FormValidationStep[];
     user?: User;
+    can_validate?: boolean;
 }
 
 export default function SubmissionDetails() {
     const [submission, setSubmission] = useState<FormSubmission | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [validating, setValidating] = useState(false);
 
     useEffect(() => {
         // Obter o ID da query string
@@ -104,6 +107,42 @@ export default function SubmissionDetails() {
         }
     };
 
+    const handleValidate = async (action: 'approve' | 'reject' | 'informado') => {
+        if (!submission || validating) return;
+
+        setValidating(true);
+        try {
+            const response = await fetch(`/api/submissions/${submission.id}/validate`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json',
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({ action }),
+            });
+
+            if (!response.ok) {
+                const err = await response.json();
+                throw new Error(err.error || 'Erro ao validar passo');
+            }
+
+            const result = await response.json();
+            setSubmission(result.data);
+        } catch (err) {
+            console.error('Error validating step:', err);
+            setError(err instanceof Error ? err.message : 'Erro ao validar passo');
+        } finally {
+            setValidating(false);
+        }
+    };
+
+    const currentStepIndex = submission?.current_step_index ?? 0;
+    const validationSequence = submission?.form_template?.validation_sequence || [];
+    const currentStep = validationSequence[currentStepIndex] as
+        | { type?: string; name?: string }
+        | undefined;
+
     if (loading) {
         return (
             <>
@@ -156,26 +195,40 @@ export default function SubmissionDetails() {
 
                     <div className="p-4 space-y-2">
                         {validationSteps.length > 0 ? (
-                            validationSteps.map((step: any, index: number) => (
-                                <div
-                                    key={step.id || index}
-                                    className="flex items-start gap-3 rounded-lg border border-gray-200 bg-gray-50 p-3"
-                                >
-                                    <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-xs font-semibold text-white">
-                                        {index + 1}
-                                    </div>
-                                    <div className="min-w-0">
-                                        <p className="text-sm font-medium text-gray-900">
-                                            {step.name}
-                                        </p>
-                                        {step.type && (
-                                            <p className="text-xs text-gray-500">
-                                                {step.type}
+                            validationSteps.map((step: any, index: number) => {
+                                const isCurrentStep = index === currentStepIndex;
+                                return (
+                                    <div
+                                        key={step.id || index}
+                                        className={`flex items-start gap-3 rounded-lg border p-3 ${
+                                            isCurrentStep
+                                                ? 'border-indigo-300 bg-indigo-50'
+                                                : 'border-gray-200 bg-gray-50'
+                                        }`}
+                                    >
+                                        <div className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold text-white ${
+                                            isCurrentStep ? 'bg-indigo-600' : 'bg-gray-400'
+                                        }`}>
+                                            {index + 1}
+                                        </div>
+                                        <div className="min-w-0">
+                                            <p className="text-sm font-medium text-gray-900">
+                                                {step.name}
                                             </p>
-                                        )}
+                                            {step.type && (
+                                                <p className="text-xs text-gray-500">
+                                                    {step.type}
+                                                    {isCurrentStep && (
+                                                        <span className="ml-2 text-indigo-600 font-medium">
+                                                            (atual)
+                                                        </span>
+                                                    )}
+                                                </p>
+                                            )}
+                                        </div>
                                     </div>
-                                </div>
-                            ))
+                                );
+                            })
                         ) : (
                             <p className="text-sm text-gray-500">
                                 Sem passos de workflow definidos
@@ -205,8 +258,55 @@ export default function SubmissionDetails() {
                                     </p>
                                 </div>
                             </div>
-                            <div className={`rounded-full px-3 py-1 text-sm font-medium ${getStatusBadgeColor(submission.status)}`}>
-                                {getStatusLabel(submission.status)}
+                            <div className="flex items-center gap-3">
+                                {submission.can_validate && submission.status === 'pending' && currentStep && (
+                                    <>
+                                        {currentStep.type === 'informar' ? (
+                                            <Button
+                                                size="sm"
+                                                className="gap-2 bg-blue-600 text-white hover:bg-blue-700"
+                                                onClick={() => handleValidate('informado')}
+                                                disabled={validating}
+                                            >
+                                                {validating ? (
+                                                    <Loader className="h-4 w-4 animate-spin" />
+                                                ) : (
+                                                    <Info className="h-4 w-4" />
+                                                )}
+                                                Marcar como Informado
+                                            </Button>
+                                        ) : (
+                                            <>
+                                                <Button
+                                                    size="sm"
+                                                    className="gap-2 bg-green-600 text-white hover:bg-green-700"
+                                                    onClick={() => handleValidate('approve')}
+                                                    disabled={validating}
+                                                >
+                                                    {validating ? (
+                                                        <Loader className="h-4 w-4 animate-spin" />
+                                                    ) : (
+                                                        <CheckCircle className="h-4 w-4" />
+                                                    )}
+                                                    Aprovar
+                                                </Button>
+                                                <Button
+                                                    size="sm"
+                                                    variant="outline"
+                                                    className="gap-2 border-red-300 text-red-700 hover:bg-red-50"
+                                                    onClick={() => handleValidate('reject')}
+                                                    disabled={validating}
+                                                >
+                                                    <XCircle className="h-4 w-4" />
+                                                    Rejeitar
+                                                </Button>
+                                            </>
+                                        )}
+                                    </>
+                                )}
+                                <div className={`rounded-full px-3 py-1 text-sm font-medium ${getStatusBadgeColor(submission.status)}`}>
+                                    {getStatusLabel(submission.status)}
+                                </div>
                             </div>
                         </div>
                     </header>
