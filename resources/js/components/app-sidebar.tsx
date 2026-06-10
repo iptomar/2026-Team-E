@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, ClipboardCheck, FileText, FolderGit2, GitBranch, LayoutGrid, Shield } from 'lucide-react';
+import { BookOpen, ClipboardCheck, FileText, FolderGit2, LayoutGrid, Shield } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -13,7 +13,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { dashboard, builder, formsList, workflow } from '@/routes';
+import { dashboard, formsList } from '@/routes';
 import type { NavItem } from '@/types';
 import type { UserRole } from '@/types/auth';
 
@@ -32,16 +32,6 @@ const getMainNavItems = (role?: UserRole): NavItem[] => {
                 title: 'Templates',
                 href: dashboard(),
                 icon: LayoutGrid,
-            },
-            {
-                title: 'Canvas',
-                href: builder(),
-                icon: LayoutGrid,
-            },
-            {
-                title: 'Workflows',
-                href: workflow(),
-                icon: GitBranch,
             },
             {
                 title: 'Formulários',

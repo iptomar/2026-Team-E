@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\DepartmentController;
+use App\Http\Controllers\Api\DepartmentController;
 use App\Http\Controllers\Api\FormController;
 use App\Http\Controllers\Api\FormSubmissionController;
 use App\Http\Controllers\Api\LabelController;
@@ -27,6 +28,10 @@ Route::put('/templates/{id}/folder', [FormController::class, 'assignFolder']);
 Route::get('/template-folders', [FormController::class, 'indexFolders']);
 Route::post('/template-folders', [FormController::class, 'storeFolder']);
 Route::delete('/template-folders/{folderId}', [FormController::class, 'destroyFolder']);
+Route::put('/templates/{id}/folder', [FormController::class, 'assignFolder']);
+Route::get('/template-folders', [FormController::class, 'indexFolders']);
+Route::post('/template-folders', [FormController::class, 'storeFolder']);
+Route::delete('/template-folders/{folderId}', [FormController::class, 'destroyFolder']);
 
 // Rota para listar o histórico de versões/estruturas de um template específico
 Route::get('/templates/{id}/structures', [FormController::class, 'indexStructures']);
@@ -35,11 +40,16 @@ Route::put('/structures/{structureId}/toggle-active', [FormController::class, 't
 
 // Rota para submeter os dados preenchidos pelo utilizador
 Route::post('/submissions', [FormSubmissionController::class, 'storeSubmission'])->middleware(['web', 'auth']);
+Route::post('/submissions', [FormSubmissionController::class, 'storeSubmission'])->middleware(['web', 'auth']);
 
 // Rota para visualizar o formulário preenchido (Template + Dados)
 Route::get('/submissions/{id}', [FormSubmissionController::class, 'showSubmission'])->middleware(['web', 'auth']);
+Route::get('/submissions/{id}', [FormSubmissionController::class, 'showSubmission'])->middleware(['web', 'auth']);
 
 // Rotas adicionais para submissões
+Route::get('/submissions', [FormSubmissionController::class, 'indexSubmissions'])->middleware(['web', 'auth']);
+Route::put('/submissions/{id}', [FormSubmissionController::class, 'updateSubmission'])->middleware(['web', 'auth']);
+Route::delete('/submissions/{id}', [FormSubmissionController::class, 'destroySubmission'])->middleware(['web', 'auth']);
 Route::get('/submissions', [FormSubmissionController::class, 'indexSubmissions'])->middleware(['web', 'auth']);
 Route::put('/submissions/{id}', [FormSubmissionController::class, 'updateSubmission'])->middleware(['web', 'auth']);
 Route::delete('/submissions/{id}', [FormSubmissionController::class, 'destroySubmission'])->middleware(['web', 'auth']);
