@@ -48,15 +48,18 @@ class FormSubmissionController extends Controller
     }
 
     /**
-     * Listar submissões (filtradas por utilizador ou todas para admin)
+     * Listar submissões (filtradas por utilizador ou todas para validadores/admin)
      */
     public function indexSubmissions(Request $request)
     {
         $query = FormSubmission::with(['formTemplate', 'user']);
 
-        // Filtrar apenas as submissões do utilizador autenticado
-        if (auth()->check()) {
-            $query->where('user_id', auth()->id());
+        // Utilizadores comuns: só veem as próprias submissões
+        // Validadores e admins: veem todas as submissões
+        if ($user = $request->user()) {
+            if ($user->isCommonUser()) {
+                $query->where('user_id', $user->id);
+            }
         }
 
         $submissions = $query->get();
