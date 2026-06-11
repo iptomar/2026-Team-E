@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\Api\DepartmentController;
-use App\Http\Controllers\Api\DepartmentController;
 use App\Http\Controllers\Api\FormController;
 use App\Http\Controllers\Api\FormSubmissionController;
 use App\Http\Controllers\Api\LabelController;
@@ -62,7 +61,7 @@ Route::post('/submissions/{id}/validate', [FormSubmissionController::class, 'val
 
 Route::middleware(['web', 'auth', 'role:administrador'])->group(function () {
     // Listar todas as labels disponíveis para o editor
-    Route::get('/labels', [LabelController::class, 'index']); 
+    Route::get('/labels', [LabelController::class, 'index']);
 
     // Criar/Editar labels (Cargos/Departamentos)
     Route::post('/labels', [LabelController::class, 'store']);
