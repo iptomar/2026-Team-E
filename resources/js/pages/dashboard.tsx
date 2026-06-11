@@ -37,6 +37,7 @@ export default function Dashboard() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [deletingTemplateId, setDeletingTemplateId] = useState<number | null>(null);
+    const [duplicatingTemplateId, setDuplicatingTemplateId] = useState<number | null>(null); // <-- Novo estado
     const [creatingFolder, setCreatingFolder] = useState(false);
     const [deletingFolderId, setDeletingFolderId] = useState<number | null>(null);
     const [movingTemplateId, setMovingTemplateId] = useState<number | null>(null);
@@ -138,6 +139,40 @@ export default function Dashboard() {
             setError(err instanceof Error ? err.message : 'Erro ao eliminar template');
         } finally {
             setDeletingTemplateId(null);
+        }
+    };
+
+    // --- Nova função para duplicar o template ---
+    const handleDuplicateTemplate = async (templateId: number) => {
+        if (duplicatingTemplateId !== null) return;
+
+        setDuplicatingTemplateId(templateId);
+        setError(null);
+
+        try {
+            const response = await fetch(`/api/templates/${templateId}/duplicate`, {
+                method: 'POST',
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'same-origin',
+            });
+
+            if (!response.ok) {
+                throw new Error('Não foi possível duplicar o template');
+            }
+
+            const result = await response.json();
+            
+            // Assume que o teu backend retorna o novo template duplicado em result.data ou result diretamente
+            const newTemplate = result.data || result;
+
+            setTemplates((prevTemplates) => [newTemplate, ...prevTemplates]);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Erro ao duplicar template');
+        } finally {
+            setDuplicatingTemplateId(null);
         }
     };
 
@@ -396,7 +431,7 @@ export default function Dashboard() {
                                                 disabled={deletingFolderId === folder.id}
                                                 className={`text-xs font-semibold ${
                                                     selectedFolderId === folder.id ? 'text-white/90' : 'text-rose-600'
-                                                } disabled:opacity-50`}
+                                                }`}
                                             >
                                                 {deletingFolderId === folder.id ? '...' : 'Eliminar'}
                                             </button>
@@ -447,7 +482,6 @@ export default function Dashboard() {
                             </div>
                         </div>
                     </div>
-
                 </div>
 
                 <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
@@ -516,6 +550,17 @@ export default function Dashboard() {
                                             >
                                                 Preencher
                                             </button>
+                                            
+                                            {/* --- Botão Duplicar adicionado aqui --- */}
+                                            <button
+                                                type="button"
+                                                onClick={() => handleDuplicateTemplate(template.id)}
+                                                disabled={duplicatingTemplateId === template.id}
+                                                className="mr-2 rounded-md bg-amber-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-600 transition-colors disabled:cursor-not-allowed disabled:bg-amber-300"
+                                            >
+                                                {duplicatingTemplateId === template.id ? 'A duplicar...' : 'Duplicar'}
+                                            </button>
+
                                             <button
                                                 type="button"
                                                 onClick={() => handleDeleteTemplate(template.id, template.name)}
