@@ -196,7 +196,7 @@ export default function WorkflowApprovals() {
                         <EmptyState />
                     ) : (
                         <div className="flex flex-wrap gap-4">
-                            {validations.map((submission) => (
+                            {validations.map((submission) => (\
                                 <ValidationCard
                                     key={submission.id}
                                     formName={submission.form_template?.name || `Submissão #${submission.id}`}
