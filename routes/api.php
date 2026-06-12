@@ -1,10 +1,6 @@
 <?php
 
 use App\Http\Controllers\Api\DepartmentController;
-<<<<<<< Updated upstream
-=======
-
->>>>>>> Stashed changes
 use App\Http\Controllers\Api\FormController;
 use App\Http\Controllers\Api\FormSubmissionController;
 use App\Http\Controllers\Api\LabelController;
