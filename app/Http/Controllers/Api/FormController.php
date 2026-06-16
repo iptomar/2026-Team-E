@@ -25,7 +25,7 @@ class FormController extends Controller
     public function storeTemplate(Request $request)
     {
         $rules = [
-            'name' => 'required|string|max:255',
+            'name' => 'required|string|max:255|unique:form_templates,name',
             'structure' => 'required|array', // Recebido do frontend antigo
             'validation_sequence' => 'sometimes|array',
             'allowed_roles' => 'required|array',
@@ -79,6 +79,34 @@ class FormController extends Controller
     }
 
     /**
+     * Verificar se um nome de template está disponível (GET)
+     * Usado para validação em tempo real no frontend
+     */
+    public function checkTemplateName(Request $request)
+    {
+        $name = $request->query('name');
+        $currentId = $request->query('currentId');
+
+        if (!$name) {
+            return response()->json(['available' => false, 'message' => 'Nome não fornecido.'], 400);
+        }
+
+        $query = FormTemplate::where('name', $name);
+
+        // Se estamos a editar um template, excluir o ID atual da verificação
+        if ($currentId) {
+            $query->where('id', '!=', $currentId);
+        }
+
+        $exists = $query->exists();
+
+        return response()->json([
+            'available' => !$exists,
+            'message' => $exists ? 'Este nome de template já existe.' : 'Nome disponível.',
+        ]);
+    }
+
+    /**
      * Passo 2: Mostrar o Template para o utilizador preencher
      */
     public function showTemplate($id)
@@ -120,7 +148,7 @@ class FormController extends Controller
         $template = FormTemplate::findOrFail($id);
 
         $rules = [
-            'name' => 'sometimes|required|string|max:255',
+            'name' => 'sometimes|required|string|max:255|unique:form_templates,name,' . $id,
             'structure' => 'sometimes|required|array', // Nova estrutura vinda do builder
             'validation_sequence' => 'sometimes|array',
             'allowed_roles' => 'sometimes|required|array',

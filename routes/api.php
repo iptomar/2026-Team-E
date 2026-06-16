@@ -16,6 +16,9 @@ Route::get('/user', function (Request $request) {
 // Rota para guardar um novo template (Admin)
 Route::post('/templates', [FormController::class, 'storeTemplate']);
 
+// Rota para verificar se um nome de template está disponível (validação prévia)
+Route::get('/templates/check-name', [FormController::class, 'checkTemplateName']);
+
 // Rota para um utilizador buscar um template específico para preencher
 Route::get('/templates/{id}', [FormController::class, 'showTemplate']);
 

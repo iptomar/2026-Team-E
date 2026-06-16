@@ -14,6 +14,7 @@ import { Canvas } from '@/components/builder/Canvas';
 import { ComponentsSidebar } from '@/components/builder/ComponentsSidebar';
 import { PropertiesPanel } from '@/components/builder/PropertiesPanel';
 import { useFormStore } from '@/stores/formBuilderStore';
+import { useTemplateNameValidation } from '@/hooks/useTemplateNameValidation';
 import type { FieldType } from '@/types/builder';
 
 interface ActiveDragData {
@@ -33,10 +34,9 @@ const DEFAULT_FIELD_OFFSETS: Record<
 };
 
 export function BuilderContent() {
-    // Adicionado setFields (ou a função correspondente da tua store para injetar os campos carregados da API)
     const { addField, fields, formName, setFormName, resetStore } = useFormStore();
+    const { validation, checkNameAvailability } = useTemplateNameValidation();
     
-    // NOVO: Estado para armazenar o ID do template se ele vier na URL
     const [templateId, setTemplateId] = useState<string | null>(null);
     
     const [activeDragData, setActiveDragData] = useState<ActiveDragData | null>(
@@ -48,7 +48,7 @@ export function BuilderContent() {
     const [saveMessage, setSaveMessage] = useState<string>('');
     const canvasRef = useRef<HTMLDivElement | null>(null);
 
-    // NOVO: Efeito para ler o ID do URL e carregar os dados se o template já existir
+    // Carregar dados se o template já existir
     useEffect(() => {
         if (typeof window === 'undefined') return;
 
@@ -60,7 +60,6 @@ export function BuilderContent() {
             setSaveStatus('saving');
             setSaveMessage('A carregar template existente...');
             
-            // Buscar os dados do template existente na API
             fetch(`/api/templates/${id}`, {
                 headers: { Accept: 'application/json' },
                 credentials: 'same-origin',
@@ -72,9 +71,6 @@ export function BuilderContent() {
                 .then((data) => {
                     setFormName(data.name);
                     
-                    // IMPORTANTE: Aqui deves injetar os campos na tua store. 
-                    // Se a tua store tiver uma função 'setFields', usa-a aqui:
-                    // Exemplo: useFormStore.setState({ fields: data.structure || [] });
                     if (data.structure && Array.isArray(data.structure)) {
                         useFormStore.setState({ fields: data.structure });
                     }
@@ -178,6 +174,13 @@ export function BuilderContent() {
         canvasRef.current = el;
     }, []);
 
+    const handleTemplateNameBlur = useCallback(() => {
+        if (!formName?.trim()) {
+            return;
+        }
+        checkNameAvailability(formName, templateId);
+    }, [checkNameAvailability, formName, templateId]);
+
     const handleNewTemplate = useCallback(() => {
         if (fields.length > 0) {
             const confirmed = window.confirm(
@@ -188,19 +191,37 @@ export function BuilderContent() {
 
         localStorage.removeItem('form-builder-storage');
         resetStore();
-        setTemplateId(null); // Limpa o ID para voltar ao modo de "Criação Nova"
+        setTemplateId(null);
         setSaveStatus('idle');
         setSaveMessage('');
         
-        // Remove o query param da URL sem recarregar a página por completo
         router.visit('/builder');
     }, [fields.length, resetStore]);
 
-    // MODIFICADO: Função de Gravação Híbrida (Criação vs Nova Versão)
+    // MODIFICADO: Lógica de gravação com expulsão/redirecionamento para o forms-list após o OK do erro
     const handleSaveTemplate = useCallback(async () => {
-        if (!formName?.trim()) {
+        const nomeLimpo = formName?.trim();
+
+        if (!nomeLimpo || nomeLimpo === "Untitled Form") {
             setSaveStatus('error');
-            setSaveMessage('Informe um nome de template antes de gravar.');
+            setSaveMessage('Informe um nome de template válido antes de gravar.');
+            alert('Por favor, dê um nome válido ao seu template.');
+            return;
+        }
+
+        const isNameAvailable = await checkNameAvailability(nomeLimpo, templateId);
+
+        if (!isNameAvailable) {
+            setSaveStatus('error');
+            setSaveMessage('Este nome de template já existe. Escolha outro nome.');
+            
+            // 1. Abre a janela de aviso (Bloqueia o código aqui até carregar no OK)
+            alert(`Erro: Já existe um template com o nome "${nomeLimpo}". Por favor, escolha um nome único.`);
+            
+            // 2. NOVO: No milissegundo a seguir ao clique no botão "OK", o utilizador é expulso para a listagem
+            resetStore();
+            localStorage.removeItem('form-builder-storage');
+            router.visit('/forms-list');
             return;
         }
 
@@ -214,13 +235,12 @@ export function BuilderContent() {
         setSaveMessage(templateId ? 'A gravar nova versão...' : 'A criar novo template...');
 
         const payload = {
-            name: formName,
+            name: nomeLimpo,
             structure: fields,
             validation_sequence: [],
             allowed_roles: ['admin'],
         };
 
-        // Se houver um templateId, faz PUT para atualizar/criar versão. Caso contrário, faz POST.
         const url = templateId ? `/api/templates/${templateId}` : '/api/templates';
         const method = templateId ? 'PUT' : 'POST';
 
@@ -236,15 +256,21 @@ export function BuilderContent() {
             });
 
             if (!response.ok) {
-                const error = await response.json().catch(() => null);
+                const errorData = await response.json().catch(() => null);
+                let errorMessage = 'Falha ao gravar o template.';
+                
+                if (errorData?.errors?.name && Array.isArray(errorData.errors.name)) {
+                    errorMessage = errorData.errors.name[0];
+                } else if (errorData?.message) {
+                    errorMessage = errorData.message;
+                }
+                
                 setSaveStatus('error');
-                setSaveMessage(error?.message || 'Falha ao gravar o template.');
+                setSaveMessage(errorMessage);
                 return;
             }
 
             const result = await response.json();
-            
-            // Captura o ID do template (seja o criado ou o já existente que foi retornado)
             const finalTemplateId = templateId || result?.data?.id;
             
             setSaveStatus('success');
@@ -258,7 +284,7 @@ export function BuilderContent() {
             setSaveStatus('error');
             setSaveMessage('Erro de rede ao gravar o template.');
         }
-    }, [fields, formName, templateId]);
+    }, [fields, formName, templateId, checkNameAvailability, resetStore]);
 
     return (
         <div className="flex h-screen flex-col bg-gray-100 text-gray-900">
@@ -275,9 +301,15 @@ export function BuilderContent() {
                         type="text"
                         value={formName}
                         onChange={(event) => setFormName(event.target.value)}
+                        onBlur={handleTemplateNameBlur}
                         className="min-w-0 flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm outline-none transition focus:border-indigo-500 focus:ring-1 focus:ring-indigo-200"
                         placeholder="Nome do formulário"
                     />
+                    {validation.message ? (
+                        <p className="text-xs text-rose-700 font-semibold">⚠️ {validation.message}</p>
+                    ) : validation.isChecking ? (
+                        <p className="text-xs text-slate-500">Verificando nome...</p>
+                    ) : null}
                     {templateId && (
                         <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded whitespace-nowrap font-medium">
                             Modo: Nova Versão (ID: {templateId})
