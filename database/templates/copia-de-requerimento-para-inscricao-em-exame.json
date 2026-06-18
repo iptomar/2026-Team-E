@@ -1,0 +1,579 @@
+{
+    "name": "Cópia de Requerimento para Inscriçao em Exame",
+    "structure": [
+        {
+            "id": "75496397-25a6-424e-9424-e863fdec41a9",
+            "type": "checkbox",
+            "label": null,
+            "required": false,
+            "name": "field_75496397",
+            "x": 510,
+            "y": 90,
+            "width": 132,
+            "height": 55,
+            "fontSize": 16,
+            "options": [
+                {
+                    "label": "ESTA",
+                    "value": "checkbox1"
+                }
+            ],
+            "placeholder": null
+        },
+        {
+            "id": "7eb4cf2a-e7dc-4543-a666-c67d0148e800",
+            "type": "checkbox",
+            "label": null,
+            "required": false,
+            "name": "field_7eb4cf2a",
+            "x": 360,
+            "y": 90,
+            "width": 134,
+            "height": 55,
+            "fontSize": 14,
+            "options": [
+                {
+                    "label": "ESGT",
+                    "value": "checkbox1"
+                }
+            ],
+            "placeholder": null
+        },
+        {
+            "id": "275c5d93-28ac-41f6-bc99-1bb78030bb56",
+            "type": "checkbox",
+            "label": null,
+            "required": false,
+            "name": "field_275c5d93",
+            "x": 650,
+            "y": 90,
+            "width": 126,
+            "height": 57,
+            "fontSize": 14,
+            "options": [
+                {
+                    "label": "ESTT",
+                    "value": "option2"
+                }
+            ],
+            "placeholder": null
+        },
+        {
+            "id": "91704e28-64d3-440c-95df-d6b6ad08111c",
+            "type": "label",
+            "label": "Requerimento para Inscriçao em Exame",
+            "required": false,
+            "name": "field_91704e28",
+            "x": 10,
+            "y": 60,
+            "width": 305,
+            "height": 89,
+            "fontSize": 24,
+            "placeholder": null,
+            "options": []
+        },
+        {
+            "id": "2d02a9e1-571a-4dbb-87f3-dfc927c7a3e1",
+            "type": "label",
+            "label": "1. IDENTIFICAÇÃO",
+            "required": false,
+            "name": "field_2d02a9e1",
+            "x": 10,
+            "y": 150,
+            "width": 772,
+            "height": 38,
+            "fontSize": 18,
+            "placeholder": null,
+            "options": []
+        },
+        {
+            "id": "9f17a736-e692-47b3-bd2d-bca612782b59",
+            "type": "input",
+            "label": "Nome completo:",
+            "required": false,
+            "name": "field_9f17a736",
+            "x": 10,
+            "y": 190,
+            "width": 775,
+            "height": 72,
+            "placeholder": "Enter text...",
+            "fontSize": 12,
+            "options": []
+        },
+        {
+            "id": "a7c2ede8-8947-4948-a28a-5dff13cc907c",
+            "type": "input",
+            "label": "N.º de aluno:",
+            "required": false,
+            "name": "field_a7c2ede8",
+            "x": 10,
+            "y": 260,
+            "width": 228,
+            "height": 72,
+            "placeholder": "Enter text...",
+            "fontSize": 12,
+            "options": []
+        },
+        {
+            "id": "6c1525a7-6468-410e-af8a-5f0728553df8",
+            "type": "select",
+            "label": "Curso:",
+            "required": false,
+            "name": "field_6c1525a7",
+            "x": 230,
+            "y": 260,
+            "width": 380,
+            "height": 72,
+            "placeholder": "Select an option...",
+            "fontSize": 12,
+            "options": [
+                {
+                    "label": "CET em ...",
+                    "value": "option1"
+                },
+                {
+                    "label": "TeSP em ...",
+                    "value": "option2"
+                }
+            ]
+        },
+        {
+            "id": "90d588a6-6f3d-4bd8-b3d3-7770be206fc0",
+            "type": "label",
+            "label": "2.ÉPOCA DE RECURSO (Artigo 19º do regulamento Académico em vigor)",
+            "required": false,
+            "name": "field_90d588a6",
+            "x": 10,
+            "y": 330,
+            "width": 776,
+            "height": 37,
+            "fontSize": 18,
+            "placeholder": null,
+            "options": []
+        },
+        {
+            "id": "879e8b24-13d8-4963-a2ac-33c22720dc09",
+            "type": "input",
+            "label": null,
+            "required": false,
+            "name": "field_879e8b24",
+            "x": 10,
+            "y": 360,
+            "width": 367,
+            "height": 53,
+            "placeholder": "Enter text...",
+            "fontSize": 12,
+            "options": []
+        },
+        {
+            "id": "eb57f461-86ca-4d67-a0f0-c6cbf1267e91",
+            "type": "input",
+            "label": null,
+            "required": false,
+            "name": "field_eb57f461",
+            "x": 390,
+            "y": 360,
+            "width": 396,
+            "height": 54,
+            "placeholder": "Enter text...",
+            "fontSize": 12,
+            "options": []
+        },
+        {
+            "id": "16ec70b4-df28-40d2-8974-4ccb8d6f3811",
+            "type": "input",
+            "label": null,
+            "required": false,
+            "name": "field_16ec70b4",
+            "x": 10,
+            "y": 410,
+            "width": 368,
+            "height": 53,
+            "placeholder": "Enter text...",
+            "fontSize": 12,
+            "options": []
+        },
+        {
+            "id": "d891bea8-5357-427c-aced-54a1a47f5f87",
+            "type": "label",
+            "label": "3.ÉPOCA DE ESPECIAL(Artigo 20º do regulamento Académico em vigor)",
+            "required": false,
+            "name": "field_d891bea8",
+            "x": 10,
+            "y": 510,
+            "width": 778,
+            "height": 35,
+            "fontSize": 18,
+            "placeholder": null,
+            "options": []
+        },
+        {
+            "id": "0d61f5c7-cb66-4757-9826-2e95a4e88f5d",
+            "type": "label",
+            "label": "Requer para efeitos de:",
+            "required": false,
+            "name": "field_0d61f5c7",
+            "x": 10,
+            "y": 690,
+            "width": 300,
+            "height": 36,
+            "fontSize": 13,
+            "placeholder": null,
+            "options": []
+        },
+        {
+            "id": "596364df-5004-4fdf-b9b7-bf17351f696b",
+            "type": "checkbox",
+            "label": null,
+            "required": false,
+            "name": "field_596364df",
+            "x": 310,
+            "y": 720,
+            "width": 439,
+            "height": 44,
+            "fontSize": 14,
+            "options": [
+                {
+                    "label": "Trabalho estudante \/Dirigente associativi jovem",
+                    "value": "checkbox1"
+                }
+            ],
+            "placeholder": null
+        },
+        {
+            "id": "7e21649d-73e1-4918-a05d-535b334baf20",
+            "type": "checkbox",
+            "label": null,
+            "required": false,
+            "name": "field_7e21649d",
+            "x": 10,
+            "y": 720,
+            "width": 222,
+            "height": 45,
+            "fontSize": 14,
+            "options": [
+                {
+                    "label": "Obtenção de grau",
+                    "value": "checkbox1"
+                }
+            ],
+            "placeholder": null
+        },
+        {
+            "id": "3688e604-c6a4-4db0-904d-5d1a5067e94b",
+            "type": "label",
+            "label": "4. R E Q U E R E N T E",
+            "required": false,
+            "name": "field_3688e604",
+            "x": 10,
+            "y": 940,
+            "width": 776,
+            "height": 43,
+            "fontSize": 18,
+            "placeholder": null,
+            "options": []
+        },
+        {
+            "id": "dc91d3ca-9560-4250-a426-c3687c748051",
+            "type": "input",
+            "label": "Data",
+            "required": false,
+            "name": "field_dc91d3ca",
+            "x": 10,
+            "y": 980,
+            "width": 264,
+            "height": 84,
+            "placeholder": "Enter text...",
+            "fontSize": 12,
+            "options": []
+        },
+        {
+            "id": "86a07efd-0131-48c8-b8a4-02eaa657e566",
+            "type": "label",
+            "label": "Outros:",
+            "required": false,
+            "name": "field_86a07efd",
+            "x": 10,
+            "y": 810,
+            "width": 769,
+            "height": 39,
+            "fontSize": 18,
+            "placeholder": null,
+            "options": []
+        },
+        {
+            "id": "245cbb81-10bb-43c1-ad6b-e6edcdebddac",
+            "type": "label",
+            "label": "Assinatura",
+            "required": false,
+            "name": "field_245cbb81",
+            "x": 510,
+            "y": 990,
+            "width": 108,
+            "height": 39,
+            "fontSize": 16,
+            "placeholder": null,
+            "options": []
+        },
+        {
+            "id": "58972833-5bfa-40b8-aa11-6750669fb592",
+            "type": "label",
+            "label": "_____________________",
+            "required": false,
+            "name": "field_58972833",
+            "x": 430,
+            "y": 1050,
+            "width": 300,
+            "height": 60,
+            "fontSize": 24,
+            "placeholder": null,
+            "options": []
+        },
+        {
+            "id": "389fd7f5-3005-403c-98be-5dd8e943cfb2",
+            "type": "select",
+            "label": "Ano:",
+            "required": false,
+            "name": "field_389fd7f5",
+            "x": 610,
+            "y": 260,
+            "width": 175,
+            "height": 75,
+            "placeholder": "Select an option...",
+            "fontSize": 14,
+            "options": [
+                {
+                    "label": "Option 1",
+                    "value": "option1"
+                },
+                {
+                    "label": "Option 2",
+                    "value": "option2"
+                }
+            ]
+        },
+        {
+            "id": "ddca57b3-3385-45fd-9898-d3a9c007e41a",
+            "type": "input",
+            "label": null,
+            "required": false,
+            "name": "field_ddca57b3",
+            "x": 10,
+            "y": 460,
+            "width": 370,
+            "height": 54,
+            "placeholder": "Enter text...",
+            "fontSize": 14,
+            "options": []
+        },
+        {
+            "id": "f073ad8f-af42-4a8b-928f-04370cd96be1",
+            "type": "input",
+            "label": null,
+            "required": false,
+            "name": "field_f073ad8f",
+            "x": 390,
+            "y": 460,
+            "width": 393,
+            "height": 56,
+            "placeholder": "Enter text...",
+            "fontSize": 14,
+            "options": []
+        },
+        {
+            "id": "f9061728-48e8-43cd-8640-2d042a9bc3e2",
+            "type": "input",
+            "label": null,
+            "required": false,
+            "name": "field_f9061728",
+            "x": 394,
+            "y": 640,
+            "width": 391,
+            "height": 55,
+            "placeholder": "Enter text...",
+            "fontSize": 14,
+            "options": []
+        },
+        {
+            "id": "85f9eb70-b9c9-4c41-b9eb-a14ed5e7d5c9",
+            "type": "input",
+            "label": null,
+            "required": false,
+            "name": "field_85f9eb70",
+            "x": 394,
+            "y": 590,
+            "width": 392,
+            "height": 53,
+            "placeholder": "Enter text...",
+            "fontSize": 14,
+            "options": []
+        },
+        {
+            "id": "28a7cb5a-7915-49fe-88c0-b78660d936d7",
+            "type": "input",
+            "label": null,
+            "required": false,
+            "name": "field_28a7cb5a",
+            "x": 391,
+            "y": 540,
+            "width": 392,
+            "height": 55,
+            "placeholder": "Enter text...",
+            "fontSize": 14,
+            "options": []
+        },
+        {
+            "id": "df9af49c-7d68-4d47-8ccd-4f3ce7747c3c",
+            "type": "input",
+            "label": null,
+            "required": false,
+            "name": "field_df9af49c",
+            "x": 10,
+            "y": 640,
+            "width": 375,
+            "height": 53,
+            "placeholder": "Enter text...",
+            "fontSize": 14,
+            "options": []
+        },
+        {
+            "id": "72d25507-f483-406a-8d37-b41d96fa831c",
+            "type": "input",
+            "label": null,
+            "required": false,
+            "name": "field_72d25507",
+            "x": 10,
+            "y": 590,
+            "width": 371,
+            "height": 52,
+            "placeholder": "Enter text...",
+            "fontSize": 14,
+            "options": []
+        },
+        {
+            "id": "bdf98104-78e2-4e53-a57e-6dcb74dd7220",
+            "type": "input",
+            "label": null,
+            "required": false,
+            "name": "field_bdf98104",
+            "x": 10,
+            "y": 540,
+            "width": 373,
+            "height": 53,
+            "placeholder": "Enter text...",
+            "fontSize": 14,
+            "options": []
+        },
+        {
+            "id": "2c445cd8-1fa2-4ecb-9af8-1b6d4aecb2ed",
+            "type": "input",
+            "label": null,
+            "required": false,
+            "name": "field_2c445cd8",
+            "x": 390,
+            "y": 410,
+            "width": 397,
+            "height": 54,
+            "placeholder": "Enter text...",
+            "fontSize": 14,
+            "options": []
+        },
+        {
+            "id": "bcaed995-69f3-49d4-af68-ffadabe7e0aa",
+            "type": "select",
+            "label": null,
+            "required": false,
+            "name": "field_bcaed995",
+            "x": 90,
+            "y": 760,
+            "width": 690,
+            "height": 54,
+            "placeholder": "Select an option...",
+            "fontSize": 14,
+            "options": [
+                {
+                    "label": "Option 1",
+                    "value": "option1"
+                },
+                {
+                    "label": "Option 2",
+                    "value": "option2"
+                }
+            ]
+        },
+        {
+            "id": "32891305-930d-4253-961a-757f9080d7f1",
+            "type": "label",
+            "label": "Outra:",
+            "required": false,
+            "name": "field_32891305",
+            "x": 10,
+            "y": 770,
+            "width": 80,
+            "height": 42,
+            "fontSize": 14,
+            "placeholder": null,
+            "options": []
+        },
+        {
+            "id": "5637bad6-5a32-4d44-aea0-d8c4ab1d3691",
+            "type": "input",
+            "label": null,
+            "required": false,
+            "name": "field_5637bad6",
+            "x": 10,
+            "y": 840,
+            "width": 377,
+            "height": 53,
+            "placeholder": "Enter text...",
+            "fontSize": 14,
+            "options": []
+        },
+        {
+            "id": "31e45973-264d-47f9-b248-b493bccfa79c",
+            "type": "input",
+            "label": null,
+            "required": false,
+            "name": "field_31e45973",
+            "x": 10,
+            "y": 890,
+            "width": 381,
+            "height": 55,
+            "placeholder": "Enter text...",
+            "fontSize": 14,
+            "options": []
+        },
+        {
+            "id": "c3f42543-a808-49ba-a211-71168d787ce5",
+            "type": "input",
+            "label": null,
+            "required": false,
+            "name": "field_c3f42543",
+            "x": 394,
+            "y": 900,
+            "width": 400,
+            "height": 53,
+            "placeholder": "Enter text...",
+            "fontSize": 14,
+            "options": []
+        },
+        {
+            "id": "0c3f78b7-809a-4174-bef9-b611c6dea55e",
+            "type": "input",
+            "label": null,
+            "required": false,
+            "name": "field_0c3f78b7",
+            "x": 394,
+            "y": 840,
+            "width": 390,
+            "height": 54,
+            "placeholder": "Enter text...",
+            "fontSize": 14,
+            "options": []
+        }
+    ],
+    "validation_sequence": [],
+    "allowed_roles": [
+        "admin"
+    ]
+}

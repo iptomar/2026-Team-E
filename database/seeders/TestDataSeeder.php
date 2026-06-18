@@ -4,8 +4,6 @@ namespace Database\Seeders;
 
 use App\Enums\UserRole;
 use App\Models\Department;
-use App\Models\FormSubmission;
-use App\Models\FormTemplate;
 use App\Models\Label;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -74,44 +72,5 @@ class TestDataSeeder extends Seeder
             ]
         );
         $userRh->labels()->attach($tecnicoRh->id);
-
-        // 4. Template com validation_sequence
-        $template = FormTemplate::create([
-            'name' => 'Pedido de Férias',
-            'created_by' => $admin->id,
-            'allowed_roles' => [],
-            'validation_sequence' => [
-                [
-                    'name' => 'Aprovação do Diretor de RH',
-                    'description' => 'Validação pelo diretor de RH',
-                    'labels' => [
-                        ['id' => $diretorRh->id, 'name' => 'Diretor RH'],
-                    ],
-                    'type' => 'approval',
-                ],
-                [
-                    'name' => 'Aprovação do Diretor Financeiro',
-                    'description' => 'Validação pelo diretor financeiro',
-                    'labels' => [
-                        ['id' => $diretorFin->id, 'name' => 'Diretor Financeiro'],
-                    ],
-                    'type' => 'approval',
-                ],
-            ],
-        ]);
-
-        // 5. Submissão pendente no primeiro passo
-        FormSubmission::create([
-            'form_template_id' => $template->id,
-            'user_id' => $userRh->id,
-            'submitted_data' => [
-                'nome' => 'User RH',
-                'data_inicio' => '2026-07-01',
-                'data_fim' => '2026-07-15',
-                'motivo' => 'Férias anuais',
-            ],
-            'current_step_index' => 0,
-            'status' => 'pending',
-        ]);
     }
 }

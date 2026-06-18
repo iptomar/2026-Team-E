@@ -1,0 +1,338 @@
+{
+    "name": "Requerimento (minuta)",
+    "structure": [
+        {
+            "id": "b6a28573-07b9-4139-9444-2ea5fc4a9d1d",
+            "type": "label",
+            "label": "1. INDENTIFICAÇÃO",
+            "required": false,
+            "name": "field_b6a28573",
+            "x": 0,
+            "y": 80,
+            "width": 262,
+            "height": 56,
+            "fontSize": 24,
+            "placeholder": null,
+            "options": []
+        },
+        {
+            "id": "f54ce168-065e-49f5-b499-041582afc659",
+            "type": "input",
+            "label": "Nome Completo:",
+            "required": false,
+            "name": "field_f54ce168",
+            "x": 0,
+            "y": 130,
+            "width": 784,
+            "height": 90,
+            "placeholder": "Enter text...",
+            "fontSize": 14,
+            "options": []
+        },
+        {
+            "id": "b3ec2ee5-3c92-40f6-99be-d7339f59adf8",
+            "type": "label",
+            "label": "1.1 do aluno",
+            "required": false,
+            "name": "field_b3ec2ee5",
+            "x": 10,
+            "y": 210,
+            "width": 116,
+            "height": 44,
+            "fontSize": 14,
+            "placeholder": null,
+            "options": []
+        },
+        {
+            "id": "6fe91deb-3327-4618-8f53-68a511631797",
+            "type": "input",
+            "label": "Nª de aluno:",
+            "required": false,
+            "name": "field_6fe91deb",
+            "x": 0,
+            "y": 240,
+            "width": 219,
+            "height": 89,
+            "placeholder": "Enter text...",
+            "fontSize": 14,
+            "options": []
+        },
+        {
+            "id": "59a21f36-fbf2-40cd-8e24-b46e8d14e499",
+            "type": "select",
+            "label": "Ano:",
+            "required": false,
+            "name": "field_59a21f36",
+            "x": 710,
+            "y": 240,
+            "width": 80,
+            "height": 92,
+            "placeholder": null,
+            "fontSize": 14,
+            "options": [
+                {
+                    "label": "1",
+                    "value": "option1"
+                },
+                {
+                    "label": "2",
+                    "value": "option2"
+                },
+                {
+                    "label": "3",
+                    "value": "option"
+                }
+            ]
+        },
+        {
+            "id": "adf3dc39-134e-41e9-aef0-ebe5f503adfc",
+            "type": "select",
+            "label": "Curso:",
+            "required": false,
+            "name": "field_adf3dc39",
+            "x": 210,
+            "y": 240,
+            "width": 508,
+            "height": 90,
+            "placeholder": null,
+            "fontSize": 14,
+            "options": [
+                {
+                    "label": "Engenharia Informática",
+                    "value": "option1"
+                },
+                {
+                    "label": "Engenharia Eletrotecnica",
+                    "value": "option2"
+                }
+            ]
+        },
+        {
+            "id": "3f06fbd8-4f88-43ee-8fd5-2dc118c0ffd9",
+            "type": "label",
+            "label": "1.2. do candidato",
+            "required": false,
+            "name": "field_3f06fbd8",
+            "x": 10,
+            "y": 320,
+            "width": 162,
+            "height": 40,
+            "fontSize": 14,
+            "placeholder": null,
+            "options": []
+        },
+        {
+            "id": "978587f8-7cc8-4210-8e23-25778a6ee3b3",
+            "type": "input",
+            "label": "BI - CC - Outro:",
+            "required": false,
+            "name": "field_978587f8",
+            "x": 10,
+            "y": 350,
+            "width": 497,
+            "height": 79,
+            "placeholder": "Enter text...",
+            "fontSize": 14,
+            "options": []
+        },
+        {
+            "id": "a05766af-2aa8-4562-87e7-cd59063bfd85",
+            "type": "input",
+            "label": "Validade:",
+            "required": false,
+            "name": "field_a05766af",
+            "x": 540,
+            "y": 340,
+            "width": 243,
+            "height": 80,
+            "placeholder": "Enter text...",
+            "fontSize": 14,
+            "options": []
+        },
+        {
+            "id": "2e83dbfd-ace4-4124-b96e-b746994da555",
+            "type": "input",
+            "label": "Endereço:",
+            "required": false,
+            "name": "field_2e83dbfd",
+            "x": 0,
+            "y": 420,
+            "width": 794,
+            "height": 80,
+            "placeholder": "Enter text...",
+            "fontSize": 14,
+            "options": []
+        },
+        {
+            "id": "b24a7440-7b4b-46ba-8a8c-138c1f6b2760",
+            "type": "input",
+            "label": "Código Postal:",
+            "required": false,
+            "name": "field_b24a7440",
+            "x": 0,
+            "y": 500,
+            "width": 794,
+            "height": 85,
+            "placeholder": "Enter text...",
+            "fontSize": 14,
+            "options": []
+        },
+        {
+            "id": "e8a77882-9aa8-481f-83a8-e23ecdd66050",
+            "type": "input",
+            "label": "Telef:",
+            "required": false,
+            "name": "field_e8a77882",
+            "x": 0,
+            "y": 580,
+            "width": 206,
+            "height": 83,
+            "placeholder": "Enter text...",
+            "fontSize": 14,
+            "options": []
+        },
+        {
+            "id": "de960a99-aae6-471f-b9ba-e17bfe5cd4c9",
+            "type": "input",
+            "label": "Email:",
+            "required": false,
+            "name": "field_de960a99",
+            "x": 200,
+            "y": 580,
+            "width": 593,
+            "height": 81,
+            "placeholder": "Enter text...",
+            "fontSize": 14,
+            "options": []
+        },
+        {
+            "id": "91533917-664b-4042-aa29-2b3b13913e00",
+            "type": "label",
+            "label": "ASSUNTO | DESCRIÇÃO",
+            "required": false,
+            "name": "field_91533917",
+            "x": 0,
+            "y": 660,
+            "width": 300,
+            "height": 46,
+            "fontSize": 24,
+            "placeholder": null,
+            "options": []
+        },
+        {
+            "id": "eb98a188-5054-4724-b99f-9f441a63abf9",
+            "type": "input",
+            "label": "2.1. Assunto:",
+            "required": false,
+            "name": "field_eb98a188",
+            "x": 0,
+            "y": 700,
+            "width": 794,
+            "height": 77,
+            "placeholder": "Enter text...",
+            "fontSize": 14,
+            "options": []
+        },
+        {
+            "id": "94ee4487-419c-4a88-8ae8-f76f2a0a9073",
+            "type": "textarea",
+            "label": "2.2 Descrição:",
+            "required": false,
+            "name": "field_94ee4487",
+            "x": 0,
+            "y": 770,
+            "width": 794,
+            "height": 141,
+            "placeholder": "Enter description...",
+            "fontSize": 14,
+            "options": []
+        },
+        {
+            "id": "2f5f3e8a-fd9e-4e94-bb4a-69a6e49ec6e6",
+            "type": "checkbox",
+            "label": null,
+            "required": false,
+            "name": "field_2f5f3e8a",
+            "x": 260,
+            "y": 80,
+            "width": 129,
+            "height": 99,
+            "fontSize": 14,
+            "options": [
+                {
+                    "label": "ESGT",
+                    "value": "ESGT"
+                },
+                {
+                    "label": "ESTA",
+                    "value": "checkbox2"
+                },
+                {
+                    "label": "ESTT",
+                    "value": "option"
+                }
+            ],
+            "placeholder": null
+        },
+        {
+            "id": "ebfd7975-f92d-428d-902a-54d21b4b44a3",
+            "type": "label",
+            "label": "O REQUERENTE",
+            "required": false,
+            "name": "field_ebfd7975",
+            "x": 0,
+            "y": 900,
+            "width": 300,
+            "height": 50,
+            "fontSize": 24,
+            "placeholder": null,
+            "options": []
+        },
+        {
+            "id": "168c0e5f-cbb1-4222-b590-aeca7198083a",
+            "type": "input",
+            "label": "Data",
+            "required": false,
+            "name": "field_168c0e5f",
+            "x": 0,
+            "y": 950,
+            "width": 165,
+            "height": 79,
+            "placeholder": "Enter text...",
+            "fontSize": 14,
+            "options": []
+        },
+        {
+            "id": "779fd418-1583-430a-b987-be1cba799bd4",
+            "type": "label",
+            "label": "Assinatura",
+            "required": false,
+            "name": "field_779fd418",
+            "x": 540,
+            "y": 920,
+            "width": 126,
+            "height": 60,
+            "fontSize": 16,
+            "placeholder": null,
+            "options": []
+        },
+        {
+            "id": "92e4a738-6147-4071-a057-682a198968a6",
+            "type": "label",
+            "label": "______________________",
+            "required": false,
+            "name": "field_92e4a738",
+            "x": 450,
+            "y": 970,
+            "width": 300,
+            "height": 60,
+            "fontSize": 24,
+            "placeholder": null,
+            "options": []
+        }
+    ],
+    "validation_sequence": [],
+    "allowed_roles": [
+        "admin"
+    ]
+}

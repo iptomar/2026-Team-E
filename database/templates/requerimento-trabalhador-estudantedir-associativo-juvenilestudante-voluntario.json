@@ -1,0 +1,507 @@
+{
+    "name": "Requerimento  Trabalhador estudante\/Dir. Associativo Juvenil\/Estudante Voluntário",
+    "structure": [
+        {
+            "id": "75496397-25a6-424e-9424-e863fdec41a9",
+            "type": "checkbox",
+            "label": null,
+            "required": false,
+            "name": "field_75496397",
+            "x": 500,
+            "y": 50,
+            "width": 108,
+            "height": 55,
+            "fontSize": 16,
+            "options": [
+                {
+                    "label": "ESTA",
+                    "value": "checkbox1"
+                }
+            ],
+            "placeholder": null
+        },
+        {
+            "id": "7eb4cf2a-e7dc-4543-a666-c67d0148e800",
+            "type": "checkbox",
+            "label": null,
+            "required": false,
+            "name": "field_7eb4cf2a",
+            "x": 350,
+            "y": 50,
+            "width": 109,
+            "height": 55,
+            "fontSize": 14,
+            "options": [
+                {
+                    "label": "ESGT",
+                    "value": "checkbox1"
+                }
+            ],
+            "placeholder": null
+        },
+        {
+            "id": "275c5d93-28ac-41f6-bc99-1bb78030bb56",
+            "type": "checkbox",
+            "label": null,
+            "required": false,
+            "name": "field_275c5d93",
+            "x": 640,
+            "y": 50,
+            "width": 104,
+            "height": 57,
+            "fontSize": 14,
+            "options": [
+                {
+                    "label": "ESTT",
+                    "value": "option2"
+                }
+            ],
+            "placeholder": null
+        },
+        {
+            "id": "91704e28-64d3-440c-95df-d6b6ad08111c",
+            "type": "label",
+            "label": "BOLETIM DE CANDIDATURA",
+            "required": false,
+            "name": "field_91704e28",
+            "x": 10,
+            "y": 30,
+            "width": 305,
+            "height": 89,
+            "fontSize": 24,
+            "placeholder": null,
+            "options": []
+        },
+        {
+            "id": "2d02a9e1-571a-4dbb-87f3-dfc927c7a3e1",
+            "type": "label",
+            "label": "1. IDENTIFICAÇÃO",
+            "required": false,
+            "name": "field_2d02a9e1",
+            "x": 10,
+            "y": 110,
+            "width": 766,
+            "height": 38,
+            "fontSize": 18,
+            "placeholder": null,
+            "options": []
+        },
+        {
+            "id": "9f17a736-e692-47b3-bd2d-bca612782b59",
+            "type": "input",
+            "label": "Nome completo:",
+            "required": false,
+            "name": "field_9f17a736",
+            "x": 10,
+            "y": 150,
+            "width": 768,
+            "height": 68,
+            "placeholder": "Enter text...",
+            "fontSize": 12,
+            "options": []
+        },
+        {
+            "id": "90d588a6-6f3d-4bd8-b3d3-7770be206fc0",
+            "type": "label",
+            "label": "2.SITUAÇÃO DO REQUERENTE",
+            "required": false,
+            "name": "field_90d588a6",
+            "x": 10,
+            "y": 420,
+            "width": 775,
+            "height": 37,
+            "fontSize": 18,
+            "placeholder": null,
+            "options": []
+        },
+        {
+            "id": "3688e604-c6a4-4db0-904d-5d1a5067e94b",
+            "type": "label",
+            "label": "3. O REQUERENTE",
+            "required": false,
+            "name": "field_3688e604",
+            "x": 10,
+            "y": 950,
+            "width": 776,
+            "height": 36,
+            "fontSize": 18,
+            "placeholder": null,
+            "options": []
+        },
+        {
+            "id": "dc91d3ca-9560-4250-a426-c3687c748051",
+            "type": "input",
+            "label": "Data",
+            "required": false,
+            "name": "field_dc91d3ca",
+            "x": 10,
+            "y": 980,
+            "width": 264,
+            "height": 84,
+            "placeholder": "Enter text...",
+            "fontSize": 12,
+            "options": []
+        },
+        {
+            "id": "86a07efd-0131-48c8-b8a4-02eaa657e566",
+            "type": "label",
+            "label": "2.1 - Estatuto de trabalhador-estudante:",
+            "required": false,
+            "name": "field_86a07efd",
+            "x": 10,
+            "y": 450,
+            "width": 769,
+            "height": 30,
+            "fontSize": 12,
+            "placeholder": null,
+            "options": []
+        },
+        {
+            "id": "245cbb81-10bb-43c1-ad6b-e6edcdebddac",
+            "type": "label",
+            "label": "Assinatura",
+            "required": false,
+            "name": "field_245cbb81",
+            "x": 510,
+            "y": 990,
+            "width": 108,
+            "height": 39,
+            "fontSize": 16,
+            "placeholder": null,
+            "options": []
+        },
+        {
+            "id": "58972833-5bfa-40b8-aa11-6750669fb592",
+            "type": "label",
+            "label": "_____________________",
+            "required": false,
+            "name": "field_58972833",
+            "x": 430,
+            "y": 1050,
+            "width": 300,
+            "height": 60,
+            "fontSize": 24,
+            "placeholder": null,
+            "options": []
+        },
+        {
+            "id": "21d66237-4726-4554-8a35-f74ab40b3fac",
+            "type": "input",
+            "label": "Nº de aluno:",
+            "required": false,
+            "name": "field_21d66237",
+            "x": 10,
+            "y": 290,
+            "width": 209,
+            "height": 69,
+            "placeholder": "Enter text...",
+            "fontSize": 12,
+            "options": []
+        },
+        {
+            "id": "acfa9d88-39d2-459c-83f2-f3a03cd1c2ff",
+            "type": "input",
+            "label": "Curso",
+            "required": false,
+            "name": "field_acfa9d88",
+            "x": 220,
+            "y": 290,
+            "width": 554,
+            "height": 68,
+            "placeholder": "Enter text...",
+            "fontSize": 12,
+            "options": []
+        },
+        {
+            "id": "ff713a84-e1c2-4bda-83c3-7f68ff4e5af6",
+            "type": "input",
+            "label": "BI - CC - Outro:",
+            "required": false,
+            "name": "field_ff713a84",
+            "x": 10,
+            "y": 220,
+            "width": 461,
+            "height": 72,
+            "placeholder": "Enter text...",
+            "fontSize": 14,
+            "options": []
+        },
+        {
+            "id": "c3da38ab-94f9-408d-ab34-b2c4896e0704",
+            "type": "checkbox",
+            "label": null,
+            "required": false,
+            "name": "field_c3da38ab",
+            "x": 10,
+            "y": 480,
+            "width": 373,
+            "height": 104,
+            "fontSize": 14,
+            "options": [
+                {
+                    "label": "Trabalhador por conta outrém",
+                    "value": "checkbox1"
+                },
+                {
+                    "label": "Declaração da entidade empregadora",
+                    "value": "checkbox2"
+                },
+                {
+                    "label": "Cópia da declaração de início de atividade",
+                    "value": "option"
+                }
+            ],
+            "placeholder": null
+        },
+        {
+            "id": "16d3296d-bc1b-43a4-acb2-c54df6d4d2be",
+            "type": "checkbox",
+            "label": null,
+            "required": false,
+            "name": "field_16d3296d",
+            "x": 410,
+            "y": 480,
+            "width": 366,
+            "height": 104,
+            "fontSize": 14,
+            "options": [
+                {
+                    "label": "Trabalhador por conta própria",
+                    "value": "checkbox1"
+                },
+                {
+                    "label": "Cópia da declaração de início de atividade",
+                    "value": "checkbox2"
+                },
+                {
+                    "label": "Cópia da última declaração de IRS",
+                    "value": "option"
+                }
+            ],
+            "placeholder": null
+        },
+        {
+            "id": "b529349a-958d-40b1-bf74-da2db85d6f9c",
+            "type": "checkbox",
+            "label": null,
+            "required": false,
+            "name": "field_b529349a",
+            "x": 10,
+            "y": 580,
+            "width": 370,
+            "height": 77,
+            "fontSize": 14,
+            "options": [
+                {
+                    "label": "Curso de Formação Profissional",
+                    "value": "checkbox1"
+                },
+                {
+                    "label": "Declaração da entidade formadora",
+                    "value": "option"
+                }
+            ],
+            "placeholder": null
+        },
+        {
+            "id": "3168bda8-1b04-4e26-aa00-b28b1565c7e9",
+            "type": "input",
+            "label": "Validade",
+            "required": false,
+            "name": "field_3168bda8",
+            "x": 500,
+            "y": 220,
+            "width": 274,
+            "height": 70,
+            "placeholder": "Enter text...",
+            "fontSize": 12,
+            "options": []
+        },
+        {
+            "id": "579df724-704d-48aa-ac85-6208adabadb5",
+            "type": "input",
+            "label": "E-mail",
+            "required": false,
+            "name": "field_579df724",
+            "x": 10,
+            "y": 360,
+            "width": 765,
+            "height": 69,
+            "placeholder": "Enter text...",
+            "fontSize": 12,
+            "options": []
+        },
+        {
+            "id": "58066bfe-321c-4a63-b29f-1d337ec94a73",
+            "type": "checkbox",
+            "label": null,
+            "required": false,
+            "name": "field_58066bfe",
+            "x": 10,
+            "y": 680,
+            "width": 768,
+            "height": 77,
+            "fontSize": 14,
+            "options": [
+                {
+                    "label": "Dirigente Associativo Juvenil",
+                    "value": "checkbox1"
+                },
+                {
+                    "label": "Declaração emitida pelo IPJ comprovativa da qualidade de membro dos orgãos diretivos de qualquer associação",
+                    "value": "option"
+                }
+            ],
+            "placeholder": null
+        },
+        {
+            "id": "6fae4a4e-4f22-4c92-9e95-2ac9abb2320f",
+            "type": "checkbox",
+            "label": null,
+            "required": false,
+            "name": "field_6fae4a4e",
+            "x": 412,
+            "y": 580,
+            "width": 365,
+            "height": 78,
+            "fontSize": 14,
+            "options": [
+                {
+                    "label": "Programa de Ocupação Temporária",
+                    "value": "checkbox1"
+                },
+                {
+                    "label": "Declaração da entidade responsável",
+                    "value": "option"
+                }
+            ],
+            "placeholder": null
+        },
+        {
+            "id": "aed73f71-6948-4d5a-b8f5-a16307748bcc",
+            "type": "label",
+            "label": "2.2 - Estatuto dos estudantes membros de órgãos de gestão e dirigentes associativos jovens:",
+            "required": false,
+            "name": "field_aed73f71",
+            "x": 10,
+            "y": 650,
+            "width": 659,
+            "height": 30,
+            "fontSize": 12,
+            "placeholder": null,
+            "options": []
+        },
+        {
+            "id": "76c1ebd4-4ec5-4cc0-be55-9ff60914478e",
+            "type": "label",
+            "label": "2.3 - Estatuto de Estudante Voluntário do IPT:",
+            "required": false,
+            "name": "field_76c1ebd4",
+            "x": 10,
+            "y": 750,
+            "width": 455,
+            "height": 31,
+            "fontSize": 12,
+            "placeholder": null,
+            "options": []
+        },
+        {
+            "id": "0591412b-5320-4c65-827c-25f8fad16d52",
+            "type": "checkbox",
+            "label": null,
+            "required": false,
+            "name": "field_0591412b",
+            "x": 10,
+            "y": 780,
+            "width": 243,
+            "height": 51,
+            "fontSize": 14,
+            "options": [
+                {
+                    "label": "Estudante Voluntário do IPT",
+                    "value": "checkbox1"
+                }
+            ],
+            "placeholder": null
+        },
+        {
+            "id": "3dbed7e8-f2c6-4f4f-bb3f-b163e7e98874",
+            "type": "label",
+            "label": "2.4 - Outros estatutos legais",
+            "required": false,
+            "name": "field_3dbed7e8",
+            "x": 0,
+            "y": 830,
+            "width": 794,
+            "height": 30,
+            "fontSize": 12,
+            "placeholder": null,
+            "options": []
+        },
+        {
+            "id": "89ce6b9c-3a2e-4ac6-b0b8-785573621d0b",
+            "type": "textarea",
+            "label": "Informação adicional",
+            "required": false,
+            "name": "field_89ce6b9c",
+            "x": 378,
+            "y": 852,
+            "width": 407,
+            "height": 94,
+            "placeholder": "Enter description...",
+            "fontSize": 12,
+            "options": []
+        },
+        {
+            "id": "daa5b12c-a9a0-49c2-b39c-b940fd7f7d1b",
+            "type": "label",
+            "label": "Anexos",
+            "required": false,
+            "name": "field_daa5b12c",
+            "x": 0,
+            "y": 860,
+            "width": 80,
+            "height": 30,
+            "fontSize": 12,
+            "placeholder": null,
+            "options": []
+        },
+        {
+            "id": "92994d8e-7eaa-4536-8706-dee24aae93f3",
+            "type": "checkbox",
+            "label": null,
+            "required": false,
+            "name": "field_92994d8e",
+            "x": 0,
+            "y": 890,
+            "width": 80,
+            "height": 48,
+            "fontSize": 14,
+            "options": [
+                {
+                    "label": null,
+                    "value": "checkbox2"
+                }
+            ],
+            "placeholder": null
+        },
+        {
+            "id": "12b65eae-f4a8-4737-911d-5cc85dac388c",
+            "type": "input",
+            "label": null,
+            "required": false,
+            "name": "field_12b65eae",
+            "x": 70,
+            "y": 880,
+            "width": 305,
+            "height": 60,
+            "placeholder": "Enter text...",
+            "fontSize": 14,
+            "options": []
+        }
+    ],
+    "validation_sequence": [],
+    "allowed_roles": [
+        "admin"
+    ]
+}
