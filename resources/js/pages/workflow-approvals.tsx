@@ -1,5 +1,11 @@
 import { Head, router } from '@inertiajs/react';
-import { ClipboardCheck, ShieldCheck, CheckCircle, Eye, FileText } from 'lucide-react';
+import {
+    ClipboardCheck,
+    ShieldCheck,
+    CheckCircle,
+    Eye,
+    FileText,
+} from 'lucide-react';
 import { useEffect, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 
@@ -64,17 +70,16 @@ function ValidationCard({
                 </div>
             </div>
 
-            <div className="flex-1 mb-4">
+            <div className="mb-4 flex-1">
                 <h3 className="mb-1 text-sm font-semibold text-gray-900">
                     {formName}
                 </h3>
 
-                <p className="text-xs text-gray-500">
-                    {formattedDate}
-                </p>
+                <p className="text-xs text-gray-500">{formattedDate}</p>
 
                 <p className="mt-2 text-xs text-gray-600">
-                    Submetido por: <span className="font-medium">{submittedBy}</span>
+                    Submetido por:{' '}
+                    <span className="font-medium">{submittedBy}</span>
                 </p>
 
                 <p className="mt-1 text-xs text-amber-700">
@@ -104,7 +109,13 @@ function LoadingState() {
     );
 }
 
-function ErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
+function ErrorState({
+    message,
+    onRetry,
+}: {
+    message: string;
+    onRetry: () => void;
+}) {
     return (
         <div className="flex flex-col items-center justify-center rounded-2xl border border-red-200 bg-red-50/50 px-6 py-8 text-center">
             <p className="mb-3 text-sm font-medium text-red-600">{message}</p>
@@ -123,7 +134,9 @@ function EmptyState({ hasSearch }: { hasSearch?: boolean }) {
                     <ClipboardCheck className="h-6 w-6" />
                 </div>
                 <h2 className="text-base font-semibold text-gray-900">
-                    {hasSearch ? 'Nenhuma validação encontrada' : 'Sem aprovações pendentes'}
+                    {hasSearch
+                        ? 'Nenhuma validação encontrada'
+                        : 'Sem aprovações pendentes'}
                 </h2>
                 <p className="mt-2 text-sm text-gray-500">
                     {hasSearch
@@ -191,19 +204,30 @@ export default function WorkflowApprovals() {
                     {loading ? (
                         <LoadingState />
                     ) : error ? (
-                        <ErrorState message={error} onRetry={fetchValidations} />
+                        <ErrorState
+                            message={error}
+                            onRetry={fetchValidations}
+                        />
                     ) : isEmpty ? (
                         <EmptyState />
                     ) : (
                         <div className="flex flex-wrap gap-4">
-                            {validations.map((submission) => (\
+                            {validations.map((submission) => (
                                 <ValidationCard
                                     key={submission.id}
-                                    formName={submission.form_template?.name || `Submissão #${submission.id}`}
+                                    formName={
+                                        submission.form_template?.name ||
+                                        `Submissão #${submission.id}`
+                                    }
                                     submittedAt={submission.created_at}
-                                    submittedBy={submission.user?.name || 'Utilizador desconhecido'}
+                                    submittedBy={
+                                        submission.user?.name ||
+                                        'Utilizador desconhecido'
+                                    }
                                     stepName={getCurrentStepName(submission)}
-                                    onValidate={() => handleValidate(submission.id)}
+                                    onValidate={() =>
+                                        handleValidate(submission.id)
+                                    }
                                 />
                             ))}
                         </div>
